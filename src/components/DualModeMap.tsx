@@ -6,6 +6,7 @@ import {
   AlertCircle,
   ArrowDown,
   ArrowUp,
+  Building2,
   Camera,
   CheckCircle,
   ChevronDown,
@@ -113,20 +114,48 @@ const initialFlightPaths: FlightPath[] = [
   },
 ];
 
-const heatZones: HeatZone[] = [
-  { id: 1, x: 40, y: 33, width: 18, height: 18, risk: 'high', temp: 47.3, name: 'Central Plaza' },
-  { id: 2, x: 32, y: 55, width: 28, height: 14, risk: 'medium', temp: 39.8, name: 'Parking Area' },
-  { id: 3, x: 70, y: 48, width: 20, height: 22, risk: 'low', temp: 35.2, name: 'Research Block' },
+// CUHK Campus Heat Zones with real coordinates
+// Using direct lng/lat instead of percentage for accuracy
+interface HeatZoneGeo {
+  id: number;
+  lng: number;
+  lat: number;
+  radius: number;
+  risk: 'high' | 'medium' | 'low';
+  temp: number;
+  name: string;
+}
+
+const heatZonesGeo: HeatZoneGeo[] = [
+  // High risk - main gathering areas
+  { id: 2, lng: 114.2053, lat: 22.4215, radius: 50, risk: 'high', temp: 45.8, name: 'University Library' },
+  // Medium risk - Playground (square shape in 3D)
+  { id: 3, lng: 114.2095, lat: 22.4165, radius: 55, risk: 'medium', temp: 40.2, name: 'Playground' },
 ];
 
+// Keep old format for 2D map compatibility
+const heatZones: HeatZone[] = [
+  { id: 2, x: 40, y: 25, width: 10, height: 10, risk: 'high', temp: 45.8, name: 'University Library' },
+  { id: 3, x: 58, y: 47, width: 11, height: 11, risk: 'medium', temp: 40.2, name: 'Playground' },
+];
+
+// CUHK Main Campus coordinates: center ~114.2069, 22.4190
+// Map bounds: roughly 114.195 to 114.220 (lng), 22.410 to 22.430 (lat)
+const MAP_BOUNDS = {
+  minLng: 114.195,
+  maxLng: 114.220,
+  minLat: 22.410,
+  maxLat: 22.430,
+};
+
 const percentToGeo = (x: number, y: number) => ({
-  lng: 114.2 + (x / 100) * 0.02,
-  lat: 22.42 - (y / 100) * 0.015,
+  lng: MAP_BOUNDS.minLng + (x / 100) * (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng),
+  lat: MAP_BOUNDS.maxLat - (y / 100) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat),
 });
 
 const geoToPercent = (lng: number, lat: number) => ({
-  x: ((lng - 114.2) / 0.02) * 100,
-  y: ((22.42 - lat) / 0.015) * 100,
+  x: ((lng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * 100,
+  y: ((MAP_BOUNDS.maxLat - lat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * 100,
 });
 
 export default function DualModeMap() {
@@ -137,6 +166,7 @@ export default function DualModeMap() {
   const clickHandlerRef = useRef<any>(null);
   const flightPathEntitiesRef = useRef<any[]>([]);
   const agentPathEntitiesRef = useRef<any[]>([]);
+  const campusModelRef = useRef<any>(null); // Reference to CUHK campus model
   
   // Agent flight paths from context
   const { flightPaths: agentFlightPaths } = useFlightPlan();
@@ -146,6 +176,8 @@ export default function DualModeMap() {
   const [cesiumLoaded, setCesiumLoaded] = useState(false);
   const [cesiumError, setCesiumError] = useState<string | null>(null);
   const [cesiumInitializing, setCesiumInitializing] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
   
   const [showThermalOverlay, setShowThermalOverlay] = useState(true);
   const [showFlightPaths, setShowFlightPaths] = useState(true);
@@ -258,10 +290,35 @@ export default function DualModeMap() {
     setCameraPitch(-45);
     
     viewerRef.current.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(114.2069, 22.4167, 1500),
+      destination: Cesium.Cartesian3.fromDegrees(114.2069, 22.4190, 1500),
       orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-45), roll: 0 },
       duration: 1,
     });
+  }, []);
+
+  // Focus on CUHK Campus Model - fly to correct CUHK location
+  const focusOnCampusModel = useCallback(() => {
+    if (!viewerRef.current || !cesiumRef.current) {
+      console.log('Viewer not ready');
+      return;
+    }
+    const Cesium = cesiumRef.current;
+    
+    // Always fly to CUHK campus coordinates
+    const longitude = 114.2069;
+    const latitude = 22.4190;
+    const cameraDistance = 1500; // meters above ground
+    
+    viewerRef.current.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, cameraDistance),
+      orientation: {
+        heading: Cesium.Math.toRadians(0),
+        pitch: Cesium.Math.toRadians(-60), // Looking down
+        roll: 0
+      },
+      duration: 2,
+    });
+    console.log('Flying to CUHK campus');
   }, []);
 
   const addWaypoint = useCallback((x: number, y: number, lng?: number, lat?: number) => {
@@ -425,8 +482,9 @@ export default function DualModeMap() {
       viewerRef.current = viewer;
       addCesiumEntities(viewer, Cesium);
 
+      // Camera view for CUHK Main Campus
       viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(114.2069, 22.4167, cameraHeight),
+        destination: Cesium.Cartesian3.fromDegrees(114.2069, 22.4190, cameraHeight),
         orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(cameraPitch), roll: 0 },
       });
 
@@ -440,15 +498,199 @@ export default function DualModeMap() {
     }
   }, [cesiumLoaded, cesiumInitializing, setupCesiumClickHandler, cameraHeight, cameraPitch]);
 
-  const addCesiumEntities = (viewer: any, Cesium: any) => {
-    heatZones.forEach((zone) => {
-      const color = zone.risk === 'high' ? Cesium.Color.RED.withAlpha(0.5) : zone.risk === 'medium' ? Cesium.Color.ORANGE.withAlpha(0.4) : Cesium.Color.YELLOW.withAlpha(0.3);
-      const geo = percentToGeo(zone.x + zone.width/2, zone.y + zone.height/2);
-      viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(geo.lng, geo.lat, 50),
-        cylinder: { length: 200, topRadius: zone.width * 4, bottomRadius: zone.width * 4, material: color, outline: true, outlineColor: zone.risk === 'high' ? Cesium.Color.RED : zone.risk === 'medium' ? Cesium.Color.ORANGE : Cesium.Color.YELLOW, outlineWidth: 2 },
-        label: { text: `${zone.name}\n${zone.temp}°C`, font: '14px sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineWidth: 2, outlineColor: Cesium.Color.BLACK, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0, -100), showBackground: true, backgroundColor: Cesium.Color.BLACK.withAlpha(0.8), backgroundPadding: new Cesium.Cartesian2(10, 6) },
+  const addCesiumEntities = async (viewer: any, Cesium: any) => {
+    // Load CUHK Campus from Cesium ion
+    setModelLoading(true);
+    try {
+      console.log('Loading CUHK Campus from Cesium ion...');
+      
+      // Set Cesium ion access token
+      Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMzQyNjJlOS0xMGZlLTQ2NzctYjdhYi0zZjM4NDkyMWM0ZjEiLCJpZCI6MTIwNTA5LCJpYXQiOjE2NzI5OTE1ODd9.xcQ46k8Ng1tBILRSptcG2h4l4vxHU_vdZePrfsOBqJA';
+      
+      // Load tileset from Cesium ion
+      const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(4181808);
+      viewer.scene.primitives.add(tileset);
+      campusModelRef.current = tileset;
+      
+      console.log('CUHK Campus loaded from Cesium ion');
+      
+      // Model is at wrong location, need to reposition
+      // Actual: lng=122.763, lat=29.598, height=108790m
+      // Target: lng=114.2069, lat=22.4190, height=0m
+      
+      const actualLng = 122.7630496218366;
+      const actualLat = 29.598303913366102;
+      const actualHeight = 108790.14754517419;
+      
+      const targetLng = 114.2069;
+      const targetLat = 22.4190;
+      const targetHeight = 15; // Raise model slightly above ground
+      
+      // Calculate offset in ECEF coordinates
+      const actualPosition = Cesium.Cartesian3.fromDegrees(actualLng, actualLat, actualHeight);
+      const targetPosition = Cesium.Cartesian3.fromDegrees(targetLng, targetLat, targetHeight);
+      const offset = Cesium.Cartesian3.subtract(targetPosition, actualPosition, new Cesium.Cartesian3());
+      
+      // Apply offset to tileset model matrix
+      const offsetMatrix = Cesium.Matrix4.fromTranslation(offset);
+      Cesium.Matrix4.multiply(offsetMatrix, tileset.modelMatrix, tileset.modelMatrix);
+      
+      console.log('Model repositioned to CUHK campus');
+      console.log('Offset applied:', offset);
+      
+      setModelLoading(false);
+      setModelLoaded(true);
+      
+      // Fly to CUHK campus
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(targetLng, targetLat, 1500),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-45),
+          roll: 0
+        },
+        duration: 2,
       });
+      
+    } catch (error) {
+      console.error('Failed to load CUHK Campus from ion:', error);
+      console.log('This may be a temporary network issue. Try refreshing the page.');
+      setModelLoading(false);
+      setModelLoaded(false);
+      
+      // Add a marker at CUHK location
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(114.2069, 22.4190, 100),
+        point: { pixelSize: 15, color: Cesium.Color.CYAN, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
+        label: { 
+          text: 'CUHK Campus\n(Model loading failed - check network)', 
+          font: '12px sans-serif',
+          fillColor: Cesium.Color.WHITE,
+          showBackground: true,
+          backgroundColor: Cesium.Color.RED.withAlpha(0.7),
+        },
+      });
+      
+      // Fallback: fly to CUHK without model
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(114.2069, 22.4190, 1500),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-45),
+          roll: 0
+        },
+        duration: 2,
+      });
+    }
+
+    // Add heat zones with real CUHK coordinates
+    heatZonesGeo.forEach((zone, index) => {
+      const position = Cesium.Cartesian3.fromDegrees(zone.lng, zone.lat, 0);
+      
+      // Colors based on risk level
+      const fillColor = zone.risk === 'high' 
+        ? Cesium.Color.RED.withAlpha(0.45) 
+        : zone.risk === 'medium' 
+        ? Cesium.Color.ORANGE.withAlpha(0.4) 
+        : Cesium.Color.LIME.withAlpha(0.35);
+      
+      const outlineColor = zone.risk === 'high' 
+        ? Cesium.Color.RED 
+        : zone.risk === 'medium' 
+        ? Cesium.Color.ORANGE 
+        : Cesium.Color.LIME;
+      
+      // Playground uses box shape, others use cylinder
+      if (zone.name === 'Playground') {
+        // Box for Playground (square shape)
+        const boxSize = zone.radius * 1.6; // Make it roughly similar size
+        viewer.entities.add({
+          name: zone.name,
+          position: Cesium.Cartesian3.fromDegrees(zone.lng, zone.lat, 60),
+          box: {
+            dimensions: new Cesium.Cartesian3(boxSize, boxSize, 120),
+            material: fillColor,
+            outline: true,
+            outlineColor: outlineColor,
+            outlineWidth: 2,
+          },
+          label: {
+            text: `${zone.name}\n${zone.temp}°C`,
+            font: 'bold 14px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            outlineColor: Cesium.Color.BLACK,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -70),
+            showBackground: true,
+            backgroundColor: outlineColor.withAlpha(0.85),
+            backgroundPadding: new Cesium.Cartesian2(10, 6),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+        
+        // Ground rectangle for Playground
+        viewer.entities.add({
+          position: position,
+          rectangle: {
+            coordinates: Cesium.Rectangle.fromDegrees(
+              zone.lng - 0.0004,
+              zone.lat - 0.0004,
+              zone.lng + 0.0004,
+              zone.lat + 0.0004
+            ),
+            material: outlineColor.withAlpha(0.15),
+            outline: true,
+            outlineColor: outlineColor.withAlpha(0.7),
+            outlineWidth: 2,
+            height: 1,
+          },
+        });
+      } else {
+        // Cylinder for other zones
+        viewer.entities.add({
+          name: zone.name,
+          position: Cesium.Cartesian3.fromDegrees(zone.lng, zone.lat, 60),
+          cylinder: {
+            length: 120,
+            topRadius: zone.radius * 0.8,
+            bottomRadius: zone.radius,
+            material: fillColor,
+            outline: true,
+            outlineColor: outlineColor,
+            outlineWidth: 2,
+          },
+          label: {
+            text: `${zone.name}\n${zone.temp}°C`,
+            font: 'bold 14px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 2,
+            outlineColor: Cesium.Color.BLACK,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            pixelOffset: new Cesium.Cartesian2(0, -70),
+            showBackground: true,
+            backgroundColor: outlineColor.withAlpha(0.85),
+            backgroundPadding: new Cesium.Cartesian2(10, 6),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+        
+        // Ground circle for non-Playground zones
+        viewer.entities.add({
+          position: position,
+          ellipse: {
+            semiMajorAxis: zone.radius,
+            semiMinorAxis: zone.radius,
+            material: outlineColor.withAlpha(0.15),
+            outline: true,
+            outlineColor: outlineColor.withAlpha(0.7),
+            outlineWidth: 2,
+            height: 1,
+          },
+        });
+      }
     });
   };
 
@@ -827,6 +1069,18 @@ export default function DualModeMap() {
             <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={resetCamera} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Reset View">
               <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
             </motion.button>
+            {/* Focus on Campus Model Button */}
+            {modelLoaded && (
+              <motion.button 
+                className="p-1.5 rounded bg-cyan-500/20 border border-cyan-500/50 hover:bg-cyan-500/30" 
+                onClick={focusOnCampusModel} 
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }} 
+                title="Focus on CUHK Campus"
+              >
+                <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+              </motion.button>
+            )}
           </motion.div>
         )}
       </div>
@@ -1190,6 +1444,36 @@ export default function DualModeMap() {
                       3D Globe • {cameraHeight.toFixed(0)}m{planningMode && selectedUAV && <span className="text-cyan-400 ml-1.5">• Click to add</span>}
                     </div>
                   </div>
+                  {/* Model Loading Status */}
+                  {modelLoading && (
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                      <div className="bg-cyan-500/20 border border-cyan-500/50 px-4 py-2 rounded-lg backdrop-blur-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-cyan-400 text-xs font-medium">Loading CUHK Campus (388MB)...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {modelLoaded && (
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20">
+                      <motion.div 
+                        className="bg-green-500/20 border border-green-500/50 px-4 py-2 rounded-lg backdrop-blur-sm flex items-center gap-2"
+                        initial={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 0, y: -10 }}
+                        transition={{ delay: 5, duration: 1 }}
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span className="text-green-400 text-xs">CUHK Campus Loaded!</span>
+                        <button 
+                          onClick={focusOnCampusModel}
+                          className="ml-2 px-2 py-0.5 bg-cyan-500 hover:bg-cyan-400 text-white text-xs rounded pointer-events-auto"
+                        >
+                          Focus
+                        </button>
+                      </motion.div>
+                    </div>
+                  )}
                   <div className="absolute bottom-3 left-3 bg-black/80 rounded-lg border border-slate-700/50 p-2 z-10 pointer-events-none">
                     <div className="flex items-center gap-2 text-[9px] text-slate-400">
                       <Move3d className="w-3 h-3 text-cyan-400" />

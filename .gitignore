@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large 3D model files (loaded from Cesium Ion instead)
+public/*.gltf
+public/*.glb
+public/BatchedCUHK_MainCampus2/
+README copy.md
