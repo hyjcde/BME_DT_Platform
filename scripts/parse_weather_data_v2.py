@@ -8,25 +8,24 @@ import json
 import os
 import re
 from datetime import datetime, time
+
 import openpyxl
 
-# Test point coordinates (adjusted to fit the thermal map - shifted south ~0.003 deg)
-# Original Google Maps coordinates were offset from the thermal map base layer
-# Map center is approximately 22.4167, 114.2069
+# Test point coordinates (from Google Maps)
 TESTPOINT_COORDINATES = {
-    1: {"lat": 22.4160, "lng": 114.2077, "name": "Near University Station", "type": "HOBO MX"},
-    2: {"lat": 22.4165, "lng": 114.2083, "name": "East Campus Road", "type": "HOBO MX"},
-    3: {"lat": 22.4169, "lng": 114.2068, "name": "Central Avenue", "type": "HOBO MX"},
-    4: {"lat": 22.4172, "lng": 114.2032, "name": "Northwest Campus", "type": "HOBO MX"},
-    5: {"lat": 22.4161, "lng": 114.2047, "name": "West Side", "type": "HOBO MX"},
-    6: {"lat": 22.4155, "lng": 114.2044, "name": "Southwest Area", "type": "HOBO MX"},
-    7: {"lat": 22.4156, "lng": 114.2056, "name": "Central South", "type": "HOBO MX"},
-    8: {"lat": 22.4158, "lng": 114.2065, "name": "Campus Center", "type": "HOBO MX"},
-    9: {"lat": 22.4160, "lng": 114.2071, "name": "Weather Station 1", "type": "Weather Station"},
-    10: {"lat": 22.4167, "lng": 114.2054, "name": "Weather Station 2", "type": "Weather Station"},
-    11: {"lat": 22.4167, "lng": 114.2054, "name": "Thermocouple 1", "type": "Thermocouple"},
-    12: {"lat": 22.4160, "lng": 114.2071, "name": "Thermocouple 2", "type": "Thermocouple"},
-    13: {"lat": 22.4160, "lng": 114.2071, "name": "Radiation Tracker", "type": "Radiation Tracker"},
+    1: {"lat": 22.419000, "lng": 114.207738, "name": "Near University Station", "type": "HOBO MX"},
+    2: {"lat": 22.419548, "lng": 114.208326, "name": "East Campus Road", "type": "HOBO MX"},
+    3: {"lat": 22.419937, "lng": 114.206832, "name": "Central Avenue", "type": "HOBO MX"},
+    4: {"lat": 22.420221, "lng": 114.203237, "name": "Northwest Campus", "type": "HOBO MX"},
+    5: {"lat": 22.419147, "lng": 114.204707, "name": "West Side", "type": "HOBO MX"},
+    6: {"lat": 22.418473, "lng": 114.204404, "name": "Southwest Area", "type": "HOBO MX"},
+    7: {"lat": 22.418608, "lng": 114.205645, "name": "Central South", "type": "HOBO MX"},
+    8: {"lat": 22.418800, "lng": 114.206500, "name": "Campus Center", "type": "HOBO MX"},
+    9: {"lat": 22.418964, "lng": 114.207135, "name": "Weather Station 1", "type": "Weather Station"},
+    10: {"lat": 22.419745, "lng": 114.205381, "name": "Weather Station 2", "type": "Weather Station"},
+    11: {"lat": 22.419745, "lng": 114.205381, "name": "Thermocouple 1", "type": "Thermocouple"},
+    12: {"lat": 22.418964, "lng": 114.207135, "name": "Thermocouple 2", "type": "Thermocouple"},
+    13: {"lat": 22.418964, "lng": 114.207135, "name": "Radiation Tracker", "type": "Radiation Tracker"},
 }
 
 # Device info
