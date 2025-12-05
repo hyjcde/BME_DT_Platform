@@ -92,9 +92,9 @@ export default function SimulationResults() {
   }, [timeseries]);
 
   // Calculate current statistics from real data
-  const currentStats = useMemo(() => {
+  const currentStats = useMemo((): { avgTemp: number; maxTemp: number; minTemp: number; avgHumidity: number; trend: 'up' | 'down' | 'stable' } => {
     if (!testpoints || testpoints.length === 0) {
-      return { avgTemp: 0, maxTemp: 0, minTemp: 0, avgHumidity: 0, trend: 'stable' as const };
+      return { avgTemp: 0, maxTemp: 0, minTemp: 0, avgHumidity: 0, trend: 'stable' };
     }
     
     const temps: number[] = [];
@@ -125,7 +125,7 @@ export default function SimulationResults() {
       maxTemp: parseFloat(maxTemp.toFixed(1)), 
       minTemp: parseFloat(minTemp.toFixed(1)), 
       avgHumidity: parseFloat(avgHumidity.toFixed(1)),
-      trend: 'stable' as const 
+      trend: 'stable'
     };
   }, [testpoints]);
 
