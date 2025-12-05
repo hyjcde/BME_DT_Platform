@@ -1,0 +1,903 @@
+{
+  "Temperature , \u00b0C (Testpoint-1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 26.2,
+        "max": 43.74,
+        "avg": 31.38,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 26.68,
+        "max": 35.41,
+        "avg": 30.13,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 26.59,
+        "max": 40.47,
+        "avg": 31.6,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-4)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 25.85,
+        "max": 44.58,
+        "avg": 32.44,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-5)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 25.61,
+        "max": 38.9,
+        "avg": 30.62,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-6)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 25.94,
+        "max": 42.96,
+        "avg": 31.04,
+        "count": 2331
+      }
+    }
+  },
+  "Temperature , \u00b0C (Testpoint-7)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature": {
+        "min": 25.86,
+        "max": 45.0,
+        "avg": 31.92,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-6)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 38.98,
+        "max": 88.86,
+        "avg": 67.36,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 29.89,
+        "max": 88.89,
+        "avg": 65.3,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 39.87,
+        "max": 86.78,
+        "avg": 63.04,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-4)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 28.37,
+        "max": 91.77,
+        "avg": 61.92,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-5)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 39.48,
+        "max": 92.07,
+        "avg": 66.25,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-7)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 29.5,
+        "max": 91.16,
+        "avg": 63.85,
+        "count": 2331
+      }
+    }
+  },
+  "RH , % (Testpoint-2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity": {
+        "min": 49.97,
+        "max": 89.25,
+        "avg": 69.68,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-6)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 41615.36,
+        "avg": 3564.98,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 2.52,
+        "max": 44072.96,
+        "avg": 7025.69,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 1341521.92,
+        "avg": 6948.38,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-4)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 69734.4,
+        "avg": 17387.09,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-5)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 70553.6,
+        "avg": 8821.88,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-7)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 85647.36,
+        "avg": 12543.07,
+        "count": 2331
+      }
+    }
+  },
+  "Light , lux (Testpoint-2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "light_intensity": {
+        "min": 0.0,
+        "max": 38717.44,
+        "avg": 1018.7,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-6)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 21.16,
+        "max": 28.69,
+        "avg": 23.92,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 19.07,
+        "max": 28.83,
+        "avg": 23.34,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 20.31,
+        "max": 30.3,
+        "avg": 23.24,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-4)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 17.96,
+        "max": 29.02,
+        "avg": 23.06,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-5)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 19.51,
+        "max": 30.89,
+        "avg": 23.03,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-7)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 18.76,
+        "max": 34.72,
+        "avg": 23.32,
+        "count": 2331
+      }
+    }
+  },
+  "Dew Point , \u00b0C (Testpoint-2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "dew_point": {
+        "min": 21.31,
+        "max": 28.84,
+        "avg": 23.81,
+        "count": 2331
+      }
+    }
+  },
+  "Testpoint-11": {
+    "coordinates": {
+      "lat": 22.419745,
+      "lng": 114.205381
+    },
+    "device": {
+      "type": "Thermocouple",
+      "sensors": [
+        "LST"
+      ],
+      "category": "thermocouple"
+    },
+    "statistics": {
+      "surface_temperature": {
+        "min": 30.92,
+        "max": 42.56,
+        "avg": 39.82,
+        "count": 391
+      }
+    }
+  },
+  "Testpoint-12": {
+    "coordinates": {
+      "lat": 22.418964,
+      "lng": 114.207135
+    },
+    "device": {
+      "type": "Thermocouple",
+      "sensors": [
+        "LST"
+      ],
+      "category": "thermocouple"
+    },
+    "statistics": {
+      "surface_temperature": {
+        "min": 40.66,
+        "max": 50.15,
+        "avg": 46.09,
+        "count": 391
+      }
+    }
+  },
+  "Testpoint-9": {
+    "coordinates": {
+      "lat": 22.418964,
+      "lng": 114.207135
+    },
+    "device": {
+      "type": "Weather Station",
+      "sensors": [
+        "Ta",
+        "RH",
+        "Tg",
+        "Va",
+        "Da",
+        "Rsol",
+        "PM2.5",
+        "PM10"
+      ],
+      "category": "weather_station"
+    },
+    "statistics": {
+      "globe_temperature": {
+        "min": 30.3,
+        "max": 42.3,
+        "avg": 38.38,
+        "count": 487
+      },
+      "wind_speed": {
+        "min": 0.0,
+        "max": 2.76,
+        "avg": 0.85,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10": {
+    "coordinates": {
+      "lat": 22.419745,
+      "lng": 114.205381
+    },
+    "device": {
+      "type": "Weather Station",
+      "sensors": [
+        "Ta",
+        "RH",
+        "Tg",
+        "Va",
+        "Da",
+        "Rsol",
+        "PM2.5",
+        "PM10"
+      ],
+      "category": "weather_station"
+    },
+    "statistics": {
+      "globe_temperature": {
+        "min": 31.0,
+        "max": 40.8,
+        "avg": 36.42,
+        "count": 487
+      },
+      "wind_direction": {
+        "min": 0.0,
+        "max": 34.4,
+        "avg": 20.02,
+        "count": 488
+      },
+      "wind_speed": {
+        "min": 0.0,
+        "max": 3.05,
+        "avg": 1.18,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-9 (kWh/m2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "solar_radiation": {
+        "min": 3.0,
+        "max": 1069.0,
+        "avg": 614.79,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10 (kWh/m2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "solar_radiation": {
+        "min": 0.0,
+        "max": 1196.0,
+        "avg": 632.9,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-9 (\u2103)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature_ws": {
+        "min": 28.4,
+        "max": 32.0,
+        "avg": 30.43,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10 (\u2103)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "air_temperature_ws": {
+        "min": 26.7,
+        "max": 31.8,
+        "avg": 29.66,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-9 (%)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity_ws": {
+        "min": 51.6,
+        "max": 68.9,
+        "avg": 58.51,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10 (%)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "relative_humidity_ws": {
+        "min": 53.1,
+        "max": 72.3,
+        "avg": 59.9,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-9 (\u03bcg/m3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "pm10": {
+        "min": 10.0,
+        "max": 52.0,
+        "avg": 31.84,
+        "count": 488
+      },
+      "pm25": {
+        "min": 9.0,
+        "max": 36.0,
+        "avg": 25.02,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10 (\u03bcg/m3)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "pm25": {
+        "min": 5.0,
+        "max": 31.0,
+        "avg": 18.44,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-9 (kpa)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "atmospheric_pressure": {
+        "min": 99.8,
+        "max": 100.2,
+        "avg": 99.94,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-10 (kpa)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "atmospheric_pressure": {
+        "min": 99.8,
+        "max": 100.2,
+        "avg": 99.94,
+        "count": 488
+      }
+    }
+  },
+  "Testpoint-13(W/\u33a1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "radiation_components": {
+        "min": 0.0,
+        "max": 190.0,
+        "avg": 105.08,
+        "count": 391
+      }
+    }
+  },
+  "Testpoint-13 (W/\u33a1)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "radiation_components": {
+        "min": 0.0,
+        "max": 2000.0,
+        "avg": 737.48,
+        "count": 782
+      }
+    }
+  },
+  "Testpoint-13 (kWh/m2)": {
+    "coordinates": {
+      "lat": 22.418,
+      "lng": 114.206
+    },
+    "device": {
+      "type": "Unknown",
+      "sensors": [],
+      "category": "unknown"
+    },
+    "statistics": {
+      "radiation_components": {
+        "min": 3.0,
+        "max": 1069.0,
+        "avg": 610.12,
+        "count": 391
+      }
+    }
+  }
+}

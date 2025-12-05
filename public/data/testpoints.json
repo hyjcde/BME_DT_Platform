@@ -1,0 +1,553 @@
+[
+  {
+    "id": 1,
+    "name": "Testpoint-1",
+    "location_name": "Near University Station",
+    "lat": 22.416,
+    "lng": 114.2077,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 31.38,
+      "relative_humidity": 65.3,
+      "light": 7025.69,
+      "dew_point": 23.34
+    },
+    "statistics": {
+      "temperature": {
+        "min": 26.2,
+        "max": 43.74,
+        "avg": 31.38,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 29.89,
+        "max": 88.89,
+        "avg": 65.3,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 2.52,
+        "max": 44072.96,
+        "avg": 7025.69,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 19.07,
+        "max": 28.83,
+        "avg": 23.34,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 2,
+    "name": "Testpoint-2",
+    "location_name": "East Campus Road",
+    "lat": 22.4165,
+    "lng": 114.2083,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 30.13,
+      "relative_humidity": 69.68,
+      "light": 1018.7,
+      "dew_point": 23.81
+    },
+    "statistics": {
+      "temperature": {
+        "min": 26.68,
+        "max": 35.41,
+        "avg": 30.13,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 49.97,
+        "max": 89.25,
+        "avg": 69.68,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 38717.44,
+        "avg": 1018.7,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 21.31,
+        "max": 28.84,
+        "avg": 23.81,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 3,
+    "name": "Testpoint-3",
+    "location_name": "Central Avenue",
+    "lat": 22.4169,
+    "lng": 114.2068,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 31.6,
+      "relative_humidity": 63.04,
+      "light": 6948.38,
+      "dew_point": 23.24
+    },
+    "statistics": {
+      "temperature": {
+        "min": 26.59,
+        "max": 40.47,
+        "avg": 31.6,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 39.87,
+        "max": 86.78,
+        "avg": 63.04,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 1341521.92,
+        "avg": 6948.38,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 20.31,
+        "max": 30.3,
+        "avg": 23.24,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 4,
+    "name": "Testpoint-4",
+    "location_name": "Northwest Campus",
+    "lat": 22.4172,
+    "lng": 114.2032,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 32.44,
+      "relative_humidity": 61.92,
+      "light": 17387.09,
+      "dew_point": 23.06
+    },
+    "statistics": {
+      "temperature": {
+        "min": 25.85,
+        "max": 44.58,
+        "avg": 32.44,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 28.37,
+        "max": 91.77,
+        "avg": 61.92,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 69734.4,
+        "avg": 17387.09,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 17.96,
+        "max": 29.02,
+        "avg": 23.06,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 5,
+    "name": "Testpoint-5",
+    "location_name": "West Side",
+    "lat": 22.4161,
+    "lng": 114.2047,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 30.62,
+      "relative_humidity": 66.25,
+      "light": 8821.88,
+      "dew_point": 23.03
+    },
+    "statistics": {
+      "temperature": {
+        "min": 25.61,
+        "max": 38.9,
+        "avg": 30.62,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 39.48,
+        "max": 92.07,
+        "avg": 66.25,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 70553.6,
+        "avg": 8821.88,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 19.51,
+        "max": 30.89,
+        "avg": 23.03,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 6,
+    "name": "Testpoint-6",
+    "location_name": "Southwest Area",
+    "lat": 22.4155,
+    "lng": 114.2044,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 31.04,
+      "relative_humidity": 67.36,
+      "light": 3564.98,
+      "dew_point": 23.92
+    },
+    "statistics": {
+      "temperature": {
+        "min": 25.94,
+        "max": 42.96,
+        "avg": 31.04,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 38.98,
+        "max": 88.86,
+        "avg": 67.36,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 41615.36,
+        "avg": 3564.98,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 21.16,
+        "max": 28.69,
+        "avg": 23.92,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 7,
+    "name": "Testpoint-7",
+    "location_name": "Central South",
+    "lat": 22.4156,
+    "lng": 114.2056,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {
+      "temperature": 31.92,
+      "relative_humidity": 63.85,
+      "light": 12543.07,
+      "dew_point": 23.32
+    },
+    "statistics": {
+      "temperature": {
+        "min": 25.86,
+        "max": 45.0,
+        "avg": 31.92,
+        "unit": "\u00b0C",
+        "count": 2331
+      },
+      "relative_humidity": {
+        "min": 29.5,
+        "max": 91.16,
+        "avg": 63.85,
+        "unit": "%",
+        "count": 2331
+      },
+      "light": {
+        "min": 0,
+        "max": 85647.36,
+        "avg": 12543.07,
+        "unit": "lux",
+        "count": 2331
+      },
+      "dew_point": {
+        "min": 18.76,
+        "max": 34.72,
+        "avg": 23.32,
+        "unit": "\u00b0C",
+        "count": 2331
+      }
+    }
+  },
+  {
+    "id": 8,
+    "name": "Testpoint-8",
+    "location_name": "Campus Center",
+    "lat": 22.4158,
+    "lng": 114.2065,
+    "device_type": "HOBO MX",
+    "color": "#3b82f6",
+    "current_values": {},
+    "statistics": {}
+  },
+  {
+    "id": 9,
+    "name": "Testpoint-9",
+    "location_name": "Weather Station 1",
+    "lat": 22.416,
+    "lng": 114.2071,
+    "device_type": "Weather Station",
+    "color": "#22c55e",
+    "current_values": {
+      "globe_temperature": 38.38,
+      "wind_speed": 0.85,
+      "solar_radiation": 614.79,
+      "air_temperature": 30.43,
+      "rh_station": 58.51,
+      "pm10": 31.84,
+      "pm25": 25.02,
+      "pressure": 99.94
+    },
+    "statistics": {
+      "globe_temperature": {
+        "min": 30.3,
+        "max": 42.3,
+        "avg": 38.38,
+        "unit": "\u00b0C",
+        "count": 487
+      },
+      "wind_speed": {
+        "min": 0,
+        "max": 2.76,
+        "avg": 0.85,
+        "unit": "m/s",
+        "count": 488
+      },
+      "solar_radiation": {
+        "min": 3,
+        "max": 1069,
+        "avg": 614.79,
+        "unit": "W/m\u00b2",
+        "count": 488
+      },
+      "air_temperature": {
+        "min": 28.4,
+        "max": 32,
+        "avg": 30.43,
+        "unit": "\u00b0C",
+        "count": 488
+      },
+      "rh_station": {
+        "min": 51.6,
+        "max": 68.9,
+        "avg": 58.51,
+        "unit": "%",
+        "count": 488
+      },
+      "pm10": {
+        "min": 10,
+        "max": 52,
+        "avg": 31.84,
+        "unit": "\u03bcg/m\u00b3",
+        "count": 488
+      },
+      "pm25": {
+        "min": 9,
+        "max": 36,
+        "avg": 25.02,
+        "unit": "\u03bcg/m\u00b3",
+        "count": 488
+      },
+      "pressure": {
+        "min": 99.8,
+        "max": 100.2,
+        "avg": 99.94,
+        "unit": "kPa",
+        "count": 488
+      }
+    }
+  },
+  {
+    "id": 10,
+    "name": "Testpoint-10",
+    "location_name": "Weather Station 2",
+    "lat": 22.4167,
+    "lng": 114.2054,
+    "device_type": "Weather Station",
+    "color": "#22c55e",
+    "current_values": {
+      "globe_temperature": 36.42,
+      "wind_direction": 20.02,
+      "wind_speed": 1.18,
+      "solar_radiation": 632.9,
+      "air_temperature": 29.66,
+      "rh_station": 59.9,
+      "pm10": 24.48,
+      "pm25": 18.44,
+      "pressure": 99.94
+    },
+    "statistics": {
+      "globe_temperature": {
+        "min": 31,
+        "max": 40.8,
+        "avg": 36.42,
+        "unit": "\u00b0C",
+        "count": 487
+      },
+      "wind_direction": {
+        "min": 0,
+        "max": 34.4,
+        "avg": 20.02,
+        "unit": "\u00b0",
+        "count": 488
+      },
+      "wind_speed": {
+        "min": 0,
+        "max": 3.05,
+        "avg": 1.18,
+        "unit": "m/s",
+        "count": 488
+      },
+      "solar_radiation": {
+        "min": 0,
+        "max": 1196,
+        "avg": 632.9,
+        "unit": "W/m\u00b2",
+        "count": 488
+      },
+      "air_temperature": {
+        "min": 26.7,
+        "max": 31.8,
+        "avg": 29.66,
+        "unit": "\u00b0C",
+        "count": 488
+      },
+      "rh_station": {
+        "min": 53.1,
+        "max": 72.3,
+        "avg": 59.9,
+        "unit": "%",
+        "count": 488
+      },
+      "pm10": {
+        "min": 8,
+        "max": 44,
+        "avg": 24.48,
+        "unit": "\u03bcg/m\u00b3",
+        "count": 488
+      },
+      "pm25": {
+        "min": 5,
+        "max": 31,
+        "avg": 18.44,
+        "unit": "\u03bcg/m\u00b3",
+        "count": 488
+      },
+      "pressure": {
+        "min": 99.8,
+        "max": 100.2,
+        "avg": 99.94,
+        "unit": "kPa",
+        "count": 488
+      }
+    }
+  },
+  {
+    "id": 11,
+    "name": "Testpoint-11",
+    "location_name": "Thermocouple 1",
+    "lat": 22.4167,
+    "lng": 114.2054,
+    "device_type": "Thermocouple",
+    "color": "#f59e0b",
+    "current_values": {
+      "surface_temperature": 39.82
+    },
+    "statistics": {
+      "surface_temperature": {
+        "min": 30.92,
+        "max": 42.56,
+        "avg": 39.82,
+        "unit": "\u00b0C",
+        "count": 391
+      }
+    }
+  },
+  {
+    "id": 12,
+    "name": "Testpoint-12",
+    "location_name": "Thermocouple 2",
+    "lat": 22.416,
+    "lng": 114.2071,
+    "device_type": "Thermocouple",
+    "color": "#f59e0b",
+    "current_values": {
+      "surface_temperature": 46.09
+    },
+    "statistics": {
+      "surface_temperature": {
+        "min": 40.66,
+        "max": 50.15,
+        "avg": 46.09,
+        "unit": "\u00b0C",
+        "count": 391
+      }
+    }
+  },
+  {
+    "id": 13,
+    "name": "Testpoint-13",
+    "location_name": "Radiation Tracker",
+    "lat": 22.416,
+    "lng": 114.2071,
+    "device_type": "Radiation Tracker",
+    "color": "#a855f7",
+    "current_values": {
+      "radiation": 547.54
+    },
+    "statistics": {
+      "radiation": {
+        "min": 0,
+        "max": 2000,
+        "avg": 547.54,
+        "unit": "W/m\u00b2",
+        "count": 1564
+      }
+    }
+  }
+]

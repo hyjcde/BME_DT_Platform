@@ -1,6 +1,7 @@
 'use client';
 
 import { FlightPath as AgentFlightPath, useFlightPlan } from '@/context/FlightPlanContext';
+import { useMonitoredData } from '@/context/MonitoredDataContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -12,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   Circle,
+  Droplets,
   Eye,
   EyeOff,
   Gauge,
@@ -26,6 +28,7 @@ import {
   Navigation,
   Pause,
   Play,
+  Radio,
   RotateCcw,
   Route,
   Thermometer,
@@ -166,10 +169,20 @@ export default function DualModeMap() {
   const clickHandlerRef = useRef<any>(null);
   const flightPathEntitiesRef = useRef<any[]>([]);
   const agentPathEntitiesRef = useRef<any[]>([]);
+  const testpointEntitiesRef = useRef<any[]>([]); // Testpoint markers in 3D
   const campusModelRef = useRef<any>(null); // Reference to CUHK campus model
   
   // Agent flight paths from context
   const { flightPaths: agentFlightPaths } = useFlightPlan();
+  
+  // Monitored data from context
+  const { 
+    testpoints, 
+    selectedTestpointId, 
+    setSelectedTestpointId, 
+    getCurrentValue,
+    loading: monitoredDataLoading 
+  } = useMonitoredData();
   
   const [mounted, setMounted] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
@@ -182,6 +195,7 @@ export default function DualModeMap() {
   const [showThermalOverlay, setShowThermalOverlay] = useState(true);
   const [showFlightPaths, setShowFlightPaths] = useState(true);
   const [showHeatZones, setShowHeatZones] = useState(true);
+  const [showTestpoints, setShowTestpoints] = useState(true); // New: show testpoint markers
   const [isFlying, setIsFlying] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   
@@ -190,6 +204,7 @@ export default function DualModeMap() {
   const [altitude, setAltitude] = useState(118.76);
   const [speed, setSpeed] = useState(3.2);
   const [windSpeed] = useState(2.1);
+  const [hoveredTestpoint, setHoveredTestpoint] = useState<number | null>(null);
   
   const [hoveredZone, setHoveredZone] = useState<number | null>(null);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
@@ -427,7 +442,23 @@ export default function DualModeMap() {
     if (clickHandlerRef.current) { clickHandlerRef.current.destroy(); clickHandlerRef.current = null; }
     
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    
+    // Click handler
     handler.setInputAction((click: any) => {
+      // First check if clicked on a testpoint entity
+      const pickedObject = viewer.scene.pick(click.position);
+      if (Cesium.defined(pickedObject) && pickedObject.id) {
+        const entityId = pickedObject.id.id || pickedObject.id._id;
+        if (entityId && entityId.startsWith('testpoint-marker-')) {
+          const tpId = parseInt(entityId.replace('testpoint-marker-', ''));
+          if (!isNaN(tpId)) {
+            window.dispatchEvent(new CustomEvent('cesium-testpoint-click', { detail: { testpointId: tpId } }));
+            return;
+          }
+        }
+      }
+      
+      // Otherwise handle as ground click for waypoint planning
       const ray = viewer.camera.getPickRay(click.position);
       if (!ray) return;
       const cartesian = viewer.scene.globe.pick(ray, viewer.scene);
@@ -439,6 +470,7 @@ export default function DualModeMap() {
         window.dispatchEvent(new CustomEvent('cesium-click', { detail: { x, y, lng, lat } }));
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    
     clickHandlerRef.current = handler;
   }, []);
 
@@ -449,9 +481,21 @@ export default function DualModeMap() {
         addWaypoint(x, y, lng, lat);
       }
     };
+    
+    const handleTestpointClick = (e: CustomEvent) => {
+      const { testpointId } = e.detail;
+      if (!planningMode) {
+        setSelectedTestpointId(selectedTestpointId === testpointId ? null : testpointId);
+      }
+    };
+    
     window.addEventListener('cesium-click', handleCesiumClick as EventListener);
-    return () => window.removeEventListener('cesium-click', handleCesiumClick as EventListener);
-  }, [planningMode, selectedUAV, addWaypoint]);
+    window.addEventListener('cesium-testpoint-click', handleTestpointClick as EventListener);
+    return () => {
+      window.removeEventListener('cesium-click', handleCesiumClick as EventListener);
+      window.removeEventListener('cesium-testpoint-click', handleTestpointClick as EventListener);
+    };
+  }, [planningMode, selectedUAV, addWaypoint, selectedTestpointId, setSelectedTestpointId]);
 
   const initCesium = useCallback(async () => {
     if (!cesiumContainerRef.current || cesiumLoaded || cesiumInitializing) return;
@@ -928,6 +972,149 @@ export default function DualModeMap() {
     }
   }, [is3DMode, cesiumLoaded, agentFlightPaths, updateCesiumAgentPaths]);
 
+  // Update 3D Testpoint markers
+  const updateCesiumTestpoints = useCallback(() => {
+    if (!viewerRef.current || !cesiumRef.current || !showTestpoints) return;
+    const viewer = viewerRef.current;
+    const Cesium = cesiumRef.current;
+
+    if (viewer.isDestroyed()) return;
+
+    // Clear existing testpoint entities
+    testpointEntitiesRef.current.forEach(e => {
+      try { 
+        if (viewer.entities.contains(e)) {
+          viewer.entities.remove(e); 
+        }
+      } catch (err) { /* ignore */ }
+    });
+    testpointEntitiesRef.current = [];
+
+    // Add testpoint markers
+    testpoints.forEach((tp) => {
+      // Skip testpoints without data
+      if (!tp.statistics || Object.keys(tp.statistics).length === 0) return;
+      
+      try {
+        const isSelected = selectedTestpointId === tp.id;
+        const currentTemp = getCurrentValue(tp.id, 'temperature') ?? tp.current_values?.temperature;
+        const currentRH = getCurrentValue(tp.id, 'humidity') ?? tp.current_values?.relative_humidity;
+        
+        // Get device color
+        const deviceColors: Record<string, string> = {
+          'HOBO MX': '#3b82f6',
+          'Weather Station': '#22c55e',
+          'Thermocouple': '#f59e0b',
+          'Radiation Tracker': '#a855f7',
+        };
+        const color = deviceColors[tp.device_type] || '#6b7280';
+        const cesiumColor = Cesium.Color.fromCssColorString(color);
+        
+        // Vertical pole from ground - taller for better visibility
+        const poleEntity = viewer.entities.add({
+          id: `testpoint-pole-${tp.id}`,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+              tp.lng, tp.lat, 5,
+              tp.lng, tp.lat, 80
+            ]),
+            width: isSelected ? 5 : 3,
+            material: cesiumColor.withAlpha(isSelected ? 1 : 0.8),
+          },
+        });
+        testpointEntitiesRef.current.push(poleEntity);
+        
+        // Clickable marker billboard at top - larger and with prominent ID
+        const markerEntity = viewer.entities.add({
+          id: `testpoint-marker-${tp.id}`,
+          position: Cesium.Cartesian3.fromDegrees(tp.lng, tp.lat, 80),
+          billboard: {
+            image: createTestpointIcon(tp.id, color, isSelected),
+            width: isSelected ? 48 : 36,
+            height: isSelected ? 48 : 36,
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            scaleByDistance: new Cesium.NearFarScalar(100, 1.5, 5000, 0.5),
+          },
+        });
+        testpointEntitiesRef.current.push(markerEntity);
+        
+        // Data label showing temp/humidity - always show ID, show details on select
+        let labelText = isSelected 
+          ? `[${tp.id}] ${tp.location_name}\n${tp.device_type}`
+          : `${tp.id}`;
+        if (isSelected && currentTemp != null) {
+          labelText += `\n${currentTemp.toFixed(1)}°C`;
+          if (currentRH != null) {
+            labelText += ` | ${currentRH.toFixed(0)}%`;
+          }
+        }
+        
+        const labelEntity = viewer.entities.add({
+          id: `testpoint-label-${tp.id}`,
+          position: Cesium.Cartesian3.fromDegrees(tp.lng, tp.lat, isSelected ? 120 : 95),
+          label: {
+            text: labelText,
+            font: isSelected ? 'bold 13px sans-serif' : 'bold 14px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            outlineWidth: 3,
+            outlineColor: Cesium.Color.BLACK,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+            showBackground: true,
+            backgroundColor: isSelected ? cesiumColor.withAlpha(0.95) : Cesium.Color.BLACK.withAlpha(0.7),
+            backgroundPadding: new Cesium.Cartesian2(isSelected ? 10 : 6, isSelected ? 8 : 4),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            pixelOffset: new Cesium.Cartesian2(0, -5),
+          },
+        });
+        testpointEntitiesRef.current.push(labelEntity);
+        
+      } catch (err) {
+        console.warn('Error adding testpoint entity:', err);
+      }
+    });
+  }, [testpoints, selectedTestpointId, showTestpoints, getCurrentValue]);
+
+  // Helper function to create testpoint icon
+  const createTestpointIcon = (id: number, color: string, isSelected: boolean) => {
+    const size = isSelected ? 48 : 36;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+    
+    // Draw circle background
+    ctx.beginPath();
+    ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    
+    // Draw white border
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = isSelected ? 4 : 3;
+    ctx.stroke();
+    
+    // Draw ID number
+    ctx.fillStyle = 'white';
+    ctx.font = `bold ${isSelected ? 20 : 16}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(id.toString(), size/2, size/2);
+    
+    return canvas.toDataURL();
+  };
+
+  // Update testpoints in 3D when data changes
+  useEffect(() => {
+    if (is3DMode && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
+      updateCesiumTestpoints();
+    }
+  }, [is3DMode, cesiumLoaded, testpoints, selectedTestpointId, showTestpoints, updateCesiumTestpoints]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -1034,8 +1221,11 @@ export default function DualModeMap() {
           <motion.button className={`p-1.5 rounded transition-all ${showFlightPaths ? 'bg-blue-500/30 border border-blue-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowFlightPaths(!showFlightPaths)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Route className="w-3.5 h-3.5 text-blue-400" />
           </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${showHeatZones ? 'bg-red-500/30 border border-red-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowHeatZones(!showHeatZones)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.button className={`p-1.5 rounded transition-all ${showHeatZones ? 'bg-red-500/30 border border-red-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowHeatZones(!showHeatZones)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Heat Zones">
             {showHeatZones ? <Eye className="w-3.5 h-3.5 text-red-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+          </motion.button>
+          <motion.button className={`p-1.5 rounded transition-all ${showTestpoints ? 'bg-green-500/30 border border-green-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowTestpoints(!showTestpoints)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Monitoring Stations">
+            <Radio className={`w-3.5 h-3.5 ${showTestpoints ? 'text-green-400' : 'text-slate-400'}`} />
           </motion.button>
         </div>
 
@@ -1213,6 +1403,100 @@ export default function DualModeMap() {
                         <span className="text-white font-medium">{zone.name}</span>
                         <span className="text-slate-400 ml-2">{zone.temp}°C</span>
                       </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Testpoint Markers - 2D View */}
+              {showTestpoints && testpoints.filter(tp => Object.keys(tp.statistics || {}).length > 0).map((tp) => {
+                const pos = geoToPercent(tp.lng, tp.lat);
+                const isSelected = selectedTestpointId === tp.id;
+                const isHovered = hoveredTestpoint === tp.id;
+                const currentTemp = getCurrentValue(tp.id, 'temperature') ?? tp.current_values?.temperature;
+                const currentRH = getCurrentValue(tp.id, 'humidity') ?? tp.current_values?.relative_humidity;
+                
+                const deviceColors: Record<string, string> = {
+                  'HOBO MX': '#3b82f6',
+                  'Weather Station': '#22c55e',
+                  'Thermocouple': '#f59e0b',
+                  'Radiation Tracker': '#a855f7',
+                };
+                const color = deviceColors[tp.device_type] || '#6b7280';
+                
+                return (
+                  <div
+                    key={`testpoint-${tp.id}`}
+                    className="absolute z-20 cursor-pointer"
+                    style={{ 
+                      left: `${pos.x}%`, 
+                      top: `${pos.y}%`, 
+                      transform: 'translate(-50%, -50%)',
+                    }}
+                    onMouseEnter={() => setHoveredTestpoint(tp.id)}
+                    onMouseLeave={() => setHoveredTestpoint(null)}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setSelectedTestpointId(isSelected ? null : tp.id); 
+                    }}
+                  >
+                    {/* Marker with prominent ID number */}
+                    <motion.div
+                      className="relative"
+                      animate={{ scale: isSelected || isHovered ? 1.15 : 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {/* Large circular marker */}
+                      <div 
+                        className={`flex items-center justify-center rounded-full shadow-xl ${
+                          isSelected ? 'w-9 h-9' : 'w-7 h-7'
+                        }`}
+                        style={{ 
+                          backgroundColor: color,
+                          border: `${isSelected ? '4px' : '3px'} solid white`,
+                          boxShadow: `0 0 ${isSelected ? '12px' : '8px'} ${color}80`
+                        }}
+                      >
+                        <span className={`text-white font-bold ${isSelected ? 'text-sm' : 'text-xs'}`}>
+                          {tp.id}
+                        </span>
+                      </div>
+                      {/* Pulse animation for selected */}
+                      {isSelected && (
+                        <motion.div
+                          className="absolute inset-0 rounded-full"
+                          style={{ border: `3px solid ${color}` }}
+                          animate={{ scale: [1, 2], opacity: [0.8, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
+                    </motion.div>
+                    
+                    {/* Tooltip on hover/select */}
+                    {(isHovered || isSelected) && !planningMode && (
+                      <motion.div 
+                        className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/95 backdrop-blur-sm px-3 py-2 rounded-lg border-2 whitespace-nowrap z-30"
+                        style={{ borderColor: color }}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div className="text-[11px] font-semibold text-white mb-0.5">[{tp.id}] {tp.location_name}</div>
+                        <div className="text-[10px] text-slate-400 mb-1.5">{tp.device_type}</div>
+                        <div className="flex items-center gap-3">
+                          {currentTemp != null && (
+                            <div className="flex items-center gap-1">
+                              <Thermometer className="w-3.5 h-3.5 text-orange-400" />
+                              <span className="text-[11px] font-mono font-bold text-orange-400">{currentTemp.toFixed(1)}°C</span>
+                            </div>
+                          )}
+                          {currentRH != null && (
+                            <div className="flex items-center gap-1">
+                              <Droplets className="w-3.5 h-3.5 text-cyan-400" />
+                              <span className="text-[11px] font-mono font-bold text-cyan-400">{currentRH.toFixed(0)}%</span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
                   </div>
                 );
