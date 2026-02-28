@@ -224,8 +224,6 @@ export default function MonitoredDataPanel({
         <div className="flex items-center gap-1.5">
           <motion.span 
             className="w-2 h-2 rounded-full bg-green-500" 
-            animate={{ scale: [1, 1.3, 1] }} 
-            transition={{ duration: 2, repeat: Infinity }} 
           />
           <span className="text-[10px] text-green-400">Live</span>
         </div>

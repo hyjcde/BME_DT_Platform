@@ -207,8 +207,6 @@ export default function ThermalMap() {
             {zone.risk === 'high' && (
               <motion.div
                 className="absolute inset-0 rounded border-2 border-red-500"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.8, 0, 0.8] }}
-                transition={{ duration: 2, repeat: Infinity }}
               />
             )}
           </motion.div>
@@ -220,14 +218,6 @@ export default function ThermalMap() {
             key={uav.id}
             className="absolute z-10"
             style={{ left: `${uav.x}%`, top: `${uav.y}%` }}
-            animate={{ 
-              y: uav.active ? [0, -3, 0] : 0,
-            }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity, 
-              delay: index * 0.3 
-            }}
           >
             <div className={`relative ${uav.active ? 'text-cyan-400' : 'text-slate-500'}`}>
               {/* UAV Icon */}
@@ -246,8 +236,6 @@ export default function ThermalMap() {
               {uav.active && (
                 <motion.div
                   className="absolute inset-0 rounded-full border-2 border-cyan-400"
-                  animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
                 />
               )}
               
@@ -307,19 +295,17 @@ export default function ThermalMap() {
               className="object-cover opacity-50"
             />
             {/* UAV dots */}
-            {uavPositions.map((uav) => (
-              <motion.div
-                key={uav.id}
-                className={`absolute w-2 h-2 rounded-full ${uav.active ? 'bg-cyan-400' : 'bg-red-400'}`}
-                style={{ 
-                  left: `${uav.x}%`, 
-                  top: `${uav.y}%`,
-                  transform: 'translate(-50%, -50%)'
-                }}
-                animate={uav.active ? { scale: [1, 1.3, 1] } : {}}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
-            ))}
+                {uavPositions.map((uav) => (
+                  <motion.div
+                    key={uav.id}
+                    className={`absolute w-2 h-2 rounded-full ${uav.active ? 'bg-cyan-400' : 'bg-red-400'}`}
+                    style={{ 
+                      left: `${uav.x}%`, 
+                      top: `${uav.y}%`,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                ))}
             {/* Coverage area indicator */}
             <div className="absolute inset-2 border border-cyan-500/30 rounded" />
           </div>

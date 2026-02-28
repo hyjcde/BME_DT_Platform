@@ -2,6 +2,7 @@
 
 import { FlightPath as AgentFlightPath, useFlightPlan } from '@/context/FlightPlanContext';
 import { useMonitoredData } from '@/context/MonitoredDataContext';
+import TestpointDialog from './TestpointDialog';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -1466,8 +1467,6 @@ export default function DualModeMap() {
                         <motion.div
                           className="absolute inset-0 rounded-full"
                           style={{ border: `3px solid ${color}` }}
-                          animate={{ scale: [1, 2], opacity: [0.8, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
                         />
                       )}
                     </motion.div>
@@ -1594,8 +1593,6 @@ export default function DualModeMap() {
                         {/* UAV position with pulse effect */}
                         <circle cx={pos.x} cy={pos.y} r="1" fill={path.color} stroke="white" strokeWidth="0.3" />
                         <circle cx={pos.x} cy={pos.y} r="1" fill="none" stroke={path.color} strokeWidth="0.3">
-                          <animate attributeName="r" values="1;2.5;1" dur="1.5s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.9;0;0.9" dur="1.5s" repeatCount="indefinite" />
                         </circle>
 
                         {/* AGENT badge for agent-generated paths */}
@@ -1779,6 +1776,18 @@ export default function DualModeMap() {
           <div className="flex justify-between w-24 text-[7px] text-slate-500 mt-0.5"><span>20</span><span>35</span><span>50+</span></div>
         </div>
       </div>
+
+      {/* Selected Testpoint Dialog */}
+      <AnimatePresence>
+        {selectedTestpointId && testpoints.find(tp => tp.id === selectedTestpointId) && (
+          <div className="absolute inset-x-0 bottom-0 top-[70px] z-[100] pointer-events-none flex items-start justify-center">
+            <TestpointDialog
+              testpoint={testpoints.find(tp => tp.id === selectedTestpointId)!}
+              onClose={() => setSelectedTestpointId(null)}
+            />
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Bar */}
       <div className="p-2 border-t border-[#2a3548] flex items-center justify-between bg-gradient-to-r from-[#0a0e1a] to-[#111827]">

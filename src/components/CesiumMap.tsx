@@ -553,8 +553,6 @@ export default function CesiumMap() {
                 <div key={uav.id} className="flex items-center gap-2 text-[10px]">
                   <motion.div 
                     className={`w-2 h-2 rounded-full ${uav.active ? 'bg-cyan-400' : 'bg-slate-500'}`}
-                    animate={uav.active ? { scale: [1, 1.3, 1] } : {}}
-                    transition={{ duration: 1, repeat: Infinity }}
                   />
                   <span className={`font-mono ${uav.active ? 'text-cyan-300' : 'text-slate-500'}`}>{uav.id}</span>
                   <span className="text-slate-500">{uav.altitude}m</span>
