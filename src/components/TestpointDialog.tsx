@@ -100,6 +100,33 @@ const envData = hours24.map((time, i) => {
   return { time, aqi, pm25, pm10 };
 });
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900/95 border border-slate-600 shadow-2xl rounded-xl p-3 backdrop-blur-xl min-w-[150px]">
+        <div className="text-slate-400 text-xs mb-2 pb-2 border-b border-slate-700/50 font-medium flex justify-between items-center">
+          <span>{label || 'Data Info'}</span>
+          <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse ml-4 shadow-[0_0_8px_#22d3ee]"></span>
+        </div>
+        <div className="space-y-2">
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center justify-between gap-4 text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: entry.color || entry.fill }} />
+                <span className="text-slate-300">{entry.name}</span>
+              </div>
+              <span className="font-bold text-white tracking-wide">
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function TestpointDialog({ testpoint, onClose }: TestpointDialogProps) {
   const { timeseries } = useMonitoredData();
   const [activeTab, setActiveTab] = useState<TabType>('temp');
@@ -206,11 +233,20 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
               </div>
               <div className="text-slate-400 flex items-center gap-2">
                 <span className="text-slate-300 font-semibold w-24">Last Updated:</span>
-                <span className="text-slate-100 font-medium">{lastUpdated}</span>
+                <span className="text-slate-100 font-medium flex items-center gap-2">
+                  {lastUpdated}
+                  <span className="flex items-center gap-1.5 bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider border border-green-500/30">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_5px_#22c55e]"></span>
+                    Live
+                  </span>
+                </span>
               </div>
-              <div className="pt-2">
-                <button className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2 rounded-lg uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] active:scale-95">
+              <div className="pt-2 flex gap-2">
+                <button className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] active:scale-95">
                   View Past Data
+                </button>
+                <button className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-4 py-2 rounded-lg uppercase tracking-wider transition-all active:scale-95 border border-slate-600">
+                  Export CSV
                 </button>
               </div>
             </div>
@@ -240,10 +276,20 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
         </div>
 
           {/* Tab Content */}
-          <div className="min-h-[260px] pb-2">
+          <div className="min-h-[260px] pb-2 relative">
             <h3 className="text-[15px] font-semibold text-white mb-4 tracking-wide flex items-center gap-2">
               {TABS.find(t => t.id === activeTab)?.label}
             </h3>
+            
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="w-full h-full"
+              >
             
             {activeTab === 'temp' && (
               <div className="relative bg-slate-800/30 p-5 rounded-xl border border-slate-600/40 shadow-inner">
@@ -334,11 +380,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
               <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
                 {/* Wind KPIs */}
                 <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Speed</div><div className="text-[13px] font-bold text-blue-400">2.5 m/s</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Speed</div><div className="text-[13px] font-bold text-blue-400 flex items-center gap-1 justify-center">2.5 m/s<span className="text-[8px] text-emerald-400">↑</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Gust</div><div className="text-[13px] font-bold text-purple-400">4.2 m/s</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Gust</div><div className="text-[13px] font-bold text-purple-400 flex items-center gap-1 justify-center">4.2 m/s<span className="text-[8px] text-emerald-400">↑</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Prevailing</div><div className="text-[13px] font-bold text-white">South</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Prevailing</div><div className="text-[13px] font-bold text-white flex items-center gap-1 justify-center">South<span className="text-[8px] text-slate-500">-</span></div></div>
                 </div>
                 <div className="flex-1 min-h-0 relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -346,10 +392,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       <PolarGrid stroke="#334155" strokeDasharray="3 3" />
                       <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 500 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                        itemStyle={{ fontWeight: 600 }}
-                      />
+                    <Tooltip content={<CustomTooltip />} />
                       <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                       <Radar name="Wind Gust" dataKey="gust" stroke="#8b5cf6" strokeWidth={1} fill="#a855f7" fillOpacity={0.2} isAnimationActive={false} />
                       <Radar name="Wind Speed" dataKey="speed" stroke="#3b82f6" strokeWidth={2} fill="#60a5fa" fillOpacity={0.5} isAnimationActive={false} />
@@ -362,11 +405,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'rain' && (
               <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
                 <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">24h Total</div><div className="text-[13px] font-bold text-blue-400">18.4 mm</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">24h Total</div><div className="text-[13px] font-bold text-blue-400 flex items-center gap-1 justify-center">18.4 mm<span className="text-[8px] text-emerald-400">↑</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak Humidity</div><div className="text-[13px] font-bold text-cyan-400">92%</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak Humidity</div><div className="text-[13px] font-bold text-cyan-400 flex items-center gap-1 justify-center">92%<span className="text-[8px] text-emerald-400">↑</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Status</div><div className="text-[13px] font-bold text-green-400">Light Rain</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Status</div><div className="text-[13px] font-bold text-green-400 flex items-center gap-1 justify-center">Light Rain<span className="text-[8px] text-slate-500">-</span></div></div>
                 </div>
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -381,11 +424,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
                       <YAxis yAxisId="left" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}mm`} />
                       <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
-                      <Tooltip 
-                        cursor={{ fill: '#334155', opacity: 0.4 }}
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                        itemStyle={{ fontWeight: 600 }}
-                      />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: '#334155', opacity: 0.4 }} />
                       <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                       <Bar yAxisId="left" dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall" maxBarSize={20} isAnimationActive={false} />
                       <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#06b6d4" strokeWidth={2} dot={false} name="Humidity" isAnimationActive={false} />
@@ -398,11 +437,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'user' && (
               <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
                 <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg PMV</div><div className="text-[13px] font-bold text-rose-400">+1.2</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg PMV</div><div className="text-[13px] font-bold text-rose-400 flex items-center gap-1 justify-center">+1.2<span className="text-[8px] text-emerald-400">↓ 0.1</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max PPD</div><div className="text-[13px] font-bold text-yellow-400">42%</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max PPD</div><div className="text-[13px] font-bold text-yellow-400 flex items-center gap-1 justify-center">42%<span className="text-[8px] text-red-400">↑ 5%</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Assessment</div><div className="text-[13px] font-bold text-orange-400">Slightly Warm</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Assessment</div><div className="text-[13px] font-bold text-orange-400 flex items-center gap-1 justify-center">Slightly Warm</div></div>
                 </div>
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -411,10 +450,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
                       <YAxis yAxisId="left" stroke="#f43f5e" fontSize={10} tickLine={false} axisLine={false} domain={[-3, 3]} />
                       <YAxis yAxisId="right" orientation="right" stroke="#eab308" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                        itemStyle={{ fontWeight: 600 }}
-                      />
+                    <Tooltip content={<CustomTooltip />} />
                       <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                       <ReferenceArea y1={-0.5} y2={0.5} yAxisId="left" fill="#22c55e" fillOpacity={0.1} strokeOpacity={0} />
                       <ReferenceLine y={0} yAxisId="left" stroke="#22c55e" strokeDasharray="3 3" opacity={0.5} />
@@ -449,11 +485,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'cloud' && (
               <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
                 <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg Cloud</div><div className="text-[13px] font-bold text-slate-300">58%</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg Cloud</div><div className="text-[13px] font-bold text-slate-300 flex items-center gap-1 justify-center">58%<span className="text-[8px] text-emerald-400">↓ 12%</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max UV</div><div className="text-[13px] font-bold text-orange-400">8.2</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max UV</div><div className="text-[13px] font-bold text-orange-400 flex items-center gap-1 justify-center">8.2<span className="text-[8px] text-emerald-400">↓</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Condition</div><div className="text-[13px] font-bold text-blue-300">Partly Cloudy</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Condition</div><div className="text-[13px] font-bold text-blue-300 flex items-center gap-1 justify-center">Partly Cloudy</div></div>
                 </div>
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -468,10 +504,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
                       <YAxis yAxisId="left" stroke="#cbd5e1" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
                       <YAxis yAxisId="right" orientation="right" stroke="#fbbf24" fontSize={10} tickLine={false} axisLine={false} domain={[0, 12]} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                        itemStyle={{ fontWeight: 600 }}
-                      />
+                    <Tooltip content={<CustomTooltip />} />
                       <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                       <Area yAxisId="left" type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover" isAnimationActive={false} />
                       <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#fbbf24" strokeWidth={2} dot={{ r: 2, fill: '#fbbf24' }} name="UV Index" isAnimationActive={false} />
@@ -484,11 +517,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'leaf' && (
               <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
                 <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak AQI</div><div className="text-[13px] font-bold text-emerald-400">72</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak AQI</div><div className="text-[13px] font-bold text-emerald-400 flex items-center gap-1 justify-center">72<span className="text-[8px] text-red-400">↑ 15</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">PM2.5 Max</div><div className="text-[13px] font-bold text-purple-400">35 µg/m³</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">PM2.5 Max</div><div className="text-[13px] font-bold text-purple-400 flex items-center gap-1 justify-center">35 µg/m³<span className="text-[8px] text-red-400">↑</span></div></div>
                   <div className="w-px h-6 bg-slate-700/50" />
-                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Air Quality</div><div className="text-[13px] font-bold text-emerald-400">Moderate</div></div>
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Air Quality</div><div className="text-[13px] font-bold text-emerald-400 flex items-center gap-1 justify-center">Moderate</div></div>
                 </div>
                 <div className="flex-1 min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -503,10 +536,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
                       <YAxis yAxisId="left" stroke="#10b981" fontSize={10} tickLine={false} axisLine={false} />
                       <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={10} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                        itemStyle={{ fontWeight: 600 }}
-                      />
+                    <Tooltip content={<CustomTooltip />} />
                       <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                       <ReferenceLine y={50} yAxisId="left" stroke="#eab308" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Moderate', fill: '#eab308', fontSize: 10 }} />
                       <ReferenceLine y={100} yAxisId="left" stroke="#ef4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Unhealthy', fill: '#ef4444', fontSize: 10 }} />
@@ -518,6 +548,8 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                 </div>
               </div>
             )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </motion.div>
