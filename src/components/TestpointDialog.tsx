@@ -21,6 +21,17 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+  AreaChart,
+  Area
 } from 'recharts';
 
 interface TestpointDialogProps {
@@ -50,6 +61,50 @@ const windData = [
   { subject: 'S-W', A: 1.2, fullMark: 3 },
   { subject: 'West', A: 0.4, fullMark: 3 },
   { subject: 'N-W', A: 0.6, fullMark: 3 },
+];
+
+// Mock rain data
+const rainData = [
+  { day: 'Feb 1', amount: 12 },
+  { day: 'Feb 2', amount: 5 },
+  { day: 'Feb 3', amount: 0 },
+  { day: 'Feb 4', amount: 0 },
+  { day: 'Feb 5', amount: 25 },
+  { day: 'Feb 6', amount: 18 },
+  { day: 'Feb 7', amount: 2 },
+];
+
+// Mock thermal comfort (PMV) data
+const comfortData = [
+  { time: '08:00', pmv: -0.5 },
+  { time: '10:00', pmv: 0.2 },
+  { time: '12:00', pmv: 1.5 },
+  { time: '14:00', pmv: 2.1 },
+  { time: '16:00', pmv: 1.8 },
+  { time: '18:00', pmv: 0.5 },
+  { time: '20:00', pmv: -0.2 },
+];
+
+// Mock cloud cover data
+const cloudData = [
+  { time: '08:00', cover: 20 },
+  { time: '10:00', cover: 45 },
+  { time: '12:00', cover: 60 },
+  { time: '14:00', cover: 80 },
+  { time: '16:00', cover: 50 },
+  { time: '18:00', cover: 30 },
+  { time: '20:00', cover: 10 },
+];
+
+// Mock environment (AQI) data
+const envData = [
+  { day: 'Feb 1', aqi: 45 },
+  { day: 'Feb 2', aqi: 52 },
+  { day: 'Feb 3', aqi: 68 },
+  { day: 'Feb 4', aqi: 74 },
+  { day: 'Feb 5', aqi: 42 },
+  { day: 'Feb 6', aqi: 35 },
+  { day: 'Feb 7', aqi: 50 },
 ];
 
 export default function TestpointDialog({ testpoint, onClose }: TestpointDialogProps) {
@@ -303,9 +358,71 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
               </div>
             )}
 
-            {activeTab !== 'temp' && activeTab !== 'sun' && activeTab !== 'wind' && (
-              <div className="h-[280px] flex items-center justify-center text-slate-400 text-sm font-medium bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner">
-                Data visualization for {TABS.find(t => t.id === activeTab)?.label} is under development.
+            {activeTab === 'rain' && (
+              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={rainData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
+                      itemStyle={{ color: '#60a5fa' }}
+                    />
+                    <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Rainfall (mm)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {activeTab === 'user' && (
+              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={comfortData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={[-3, 3]} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
+                      itemStyle={{ color: '#f43f5e' }}
+                    />
+                    <Line type="monotone" dataKey="pmv" stroke="#f43f5e" strokeWidth={3} dot={{ fill: '#f43f5e', r: 4 }} name="PMV" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {activeTab === 'cloud' && (
+              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={cloudData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
+                      itemStyle={{ color: '#94a3b8' }}
+                    />
+                    <Area type="monotone" dataKey="cover" stroke="#94a3b8" fill="#cbd5e1" fillOpacity={0.3} name="Cloud Cover (%)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {activeTab === 'leaf' && (
+              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={envData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
+                      itemStyle={{ color: '#10b981' }}
+                    />
+                    <Bar dataKey="aqi" fill="#10b981" radius={[4, 4, 0, 0]} name="AQI" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )}
           </div>
