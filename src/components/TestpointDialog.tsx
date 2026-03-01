@@ -31,7 +31,8 @@ import {
   LineChart,
   Line,
   AreaChart,
-  Area
+  Area,
+  ComposedChart
 } from 'recharts';
 
 interface TestpointDialogProps {
@@ -51,61 +52,51 @@ const TABS: { id: TabType; icon: React.FC<any>; label: string }[] = [
   { id: 'leaf', icon: Leaf, label: 'Environment' },
 ];
 
+const hours24 = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+
 // Mock wind rose data
 const windData = [
-  { subject: 'North', A: 1.5, fullMark: 3 },
-  { subject: 'N-E', A: 0.5, fullMark: 3 },
-  { subject: 'East', A: 0.2, fullMark: 3 },
-  { subject: 'S-E', A: 0.8, fullMark: 3 },
-  { subject: 'South', A: 2.5, fullMark: 3 },
-  { subject: 'S-W', A: 1.2, fullMark: 3 },
-  { subject: 'West', A: 0.4, fullMark: 3 },
-  { subject: 'N-W', A: 0.6, fullMark: 3 },
+  { subject: 'N', speed: 1.5, gust: 2.5, fullMark: 5 },
+  { subject: 'NE', speed: 0.5, gust: 1.2, fullMark: 5 },
+  { subject: 'E', speed: 0.2, gust: 0.8, fullMark: 5 },
+  { subject: 'SE', speed: 1.8, gust: 3.0, fullMark: 5 },
+  { subject: 'S', speed: 2.5, gust: 4.2, fullMark: 5 },
+  { subject: 'SW', speed: 1.2, gust: 2.0, fullMark: 5 },
+  { subject: 'W', speed: 0.4, gust: 1.0, fullMark: 5 },
+  { subject: 'NW', speed: 0.6, gust: 1.5, fullMark: 5 },
 ];
 
-// Mock rain data
-const rainData = [
-  { day: 'Feb 1', amount: 12 },
-  { day: 'Feb 2', amount: 5 },
-  { day: 'Feb 3', amount: 0 },
-  { day: 'Feb 4', amount: 0 },
-  { day: 'Feb 5', amount: 25 },
-  { day: 'Feb 6', amount: 18 },
-  { day: 'Feb 7', amount: 2 },
-];
+// Mock rain & humidity data (24h)
+const rainData = hours24.map((time, i) => {
+  const isRaining = i >= 14 && i <= 18;
+  return {
+    time,
+    amount: isRaining ? Number((Math.abs(Math.sin(i)) * 8 + Math.random() * 2).toFixed(1)) : 0,
+    humidity: Number((60 + Math.sin(i * 0.3) * 20 + (isRaining ? 15 : 0) + Math.random() * 5).toFixed(0)),
+  };
+});
 
-// Mock thermal comfort (PMV) data
-const comfortData = [
-  { time: '08:00', pmv: -0.5 },
-  { time: '10:00', pmv: 0.2 },
-  { time: '12:00', pmv: 1.5 },
-  { time: '14:00', pmv: 2.1 },
-  { time: '16:00', pmv: 1.8 },
-  { time: '18:00', pmv: 0.5 },
-  { time: '20:00', pmv: -0.2 },
-];
+// Mock thermal comfort (PMV & PPD) data (24h)
+const comfortData = hours24.map((time, i) => {
+  const pmv = Number((Math.sin((i - 8) * 0.26) * 2 + Math.random() * 0.4 - 0.2).toFixed(2));
+  const ppd = Number((5 + Math.pow(Math.abs(pmv), 1.5) * 15 + Math.random() * 5).toFixed(1)); 
+  return { time, pmv, ppd: Math.min(100, ppd) };
+});
 
-// Mock cloud cover data
-const cloudData = [
-  { time: '08:00', cover: 20 },
-  { time: '10:00', cover: 45 },
-  { time: '12:00', cover: 60 },
-  { time: '14:00', cover: 80 },
-  { time: '16:00', cover: 50 },
-  { time: '18:00', cover: 30 },
-  { time: '20:00', cover: 10 },
-];
+// Mock weather (Cloud Cover & UV) data (24h)
+const cloudData = hours24.map((time, i) => {
+  const uv = i > 6 && i < 19 ? Number((Math.sin((i - 6) * 0.25) * 8 + Math.random() * 2).toFixed(1)) : 0;
+  const cover = Number((40 + Math.sin(i * 0.4) * 40 + Math.random() * 20).toFixed(0));
+  return { time, cover: Math.min(100, cover), uv };
+});
 
-// Mock environment (AQI) data
-const envData = [
-  { day: 'Feb 1', aqi: 45 },
-  { day: 'Feb 2', aqi: 52 },
-  { day: 'Feb 3', aqi: 68 },
-  { day: 'Feb 4', aqi: 74 },
-  { day: 'Feb 5', aqi: 42 },
-  { day: 'Feb 6', aqi: 35 },
-  { day: 'Feb 7', aqi: 50 },
-];
+// Mock environment (AQI, PM2.5, PM10) data (24h)
+const envData = hours24.map((time, i) => {
+  const aqi = Number((45 + Math.sin(i * 0.2) * 25 + Math.random() * 10).toFixed(0));
+  const pm25 = Number((aqi * 0.4 + Math.random() * 5).toFixed(0));
+  const pm10 = Number((aqi * 0.7 + Math.random() * 8).toFixed(0));
+  return { time, aqi, pm25, pm10 };
+});
 
 export default function TestpointDialog({ testpoint, onClose }: TestpointDialogProps) {
   const { timeseries } = useMonitoredData();
@@ -338,34 +329,28 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             )}
 
             {activeTab === 'wind' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner relative overflow-hidden">
+              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner relative overflow-hidden p-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="45%" cy="50%" outerRadius="60%" data={windData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="60%" data={windData}>
                     <PolarGrid stroke="#334155" strokeDasharray="3 3" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 500 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 3]} tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 500 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ color: '#60a5fa', fontWeight: 600 }}
+                      itemStyle={{ fontWeight: 600 }}
                     />
-                    <Radar name="Wind Speed (m/s)" dataKey="A" stroke="#60a5fa" strokeWidth={2} fill="#3b82f6" fillOpacity={0.4} isAnimationActive={false} />
+                    <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                    <Radar name="Wind Gust" dataKey="gust" stroke="#8b5cf6" strokeWidth={1} fill="#a855f7" fillOpacity={0.2} isAnimationActive={false} />
+                    <Radar name="Wind Speed" dataKey="speed" stroke="#3b82f6" strokeWidth={2} fill="#60a5fa" fillOpacity={0.5} isAnimationActive={false} />
                   </RadarChart>
                 </ResponsiveContainer>
-                {/* Wind legend overlay */}
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 text-[11px] font-medium text-slate-300 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-600 shadow-2xl">
-                  <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded-[3px] bg-blue-300 shadow-sm border border-blue-200/50" /> 0-0.5 m/s</div>
-                  <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded-[3px] bg-blue-400 shadow-sm border border-blue-300/50" /> 0.5-1.0 m/s</div>
-                  <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded-[3px] bg-blue-500 shadow-sm border border-blue-400/50" /> 1.0-1.5 m/s</div>
-                  <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded-[3px] bg-blue-600 shadow-sm border border-blue-500/50" /> 1.5-2.0 m/s</div>
-                  <div className="flex items-center gap-2.5"><div className="w-4 h-4 rounded-[3px] bg-blue-700 shadow-sm border border-blue-600/50" /> &gt; 2.0 m/s</div>
-                </div>
               </div>
             )}
 
             {activeTab === 'rain' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={rainData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                  <ComposedChart data={rainData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
@@ -373,16 +358,18 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                    <YAxis yAxisId="left" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}mm`} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
                     <Tooltip 
                       cursor={{ fill: '#334155', opacity: 0.4 }}
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ color: '#60a5fa', fontWeight: 600 }}
+                      itemStyle={{ fontWeight: 600 }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Bar dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall (mm)" maxBarSize={40} isAnimationActive={false} />
-                  </BarChart>
+                    <Bar yAxisId="left" dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall" maxBarSize={20} isAnimationActive={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#06b6d4" strokeWidth={2} dot={false} name="Humidity" isAnimationActive={false} />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             )}
@@ -390,26 +377,39 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'user' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={comfortData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                  <ComposedChart data={comfortData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} domain={[-3, 3]} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                    <YAxis yAxisId="left" stroke="#f43f5e" fontSize={10} tickLine={false} axisLine={false} domain={[-3, 3]} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#eab308" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ color: '#f43f5e', fontWeight: 600 }}
+                      itemStyle={{ fontWeight: 600 }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                     <Line 
+                      yAxisId="left"
                       type="monotone" 
                       dataKey="pmv" 
                       stroke="#f43f5e" 
                       strokeWidth={3} 
-                      dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 4 }} 
-                      activeDot={{ r: 6, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
-                      name="PMV (Predicted Mean Vote)" 
+                      dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 3 }} 
+                      activeDot={{ r: 5, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
+                      name="PMV Index" 
                       isAnimationActive={false}
                     />
-                  </LineChart>
+                    <Line 
+                      yAxisId="right"
+                      type="monotone" 
+                      dataKey="ppd" 
+                      stroke="#eab308" 
+                      strokeWidth={2} 
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name="PPD (%)" 
+                      isAnimationActive={false}
+                    />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             )}
@@ -417,7 +417,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'cloud' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={cloudData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                  <ComposedChart data={cloudData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorCloud" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.6}/>
@@ -425,15 +425,17 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} domain={[0, 100]} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                    <YAxis yAxisId="left" stroke="#cbd5e1" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#fbbf24" fontSize={10} tickLine={false} axisLine={false} domain={[0, 12]} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ color: '#cbd5e1', fontWeight: 600 }}
+                      itemStyle={{ fontWeight: 600 }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Area type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover (%)" isAnimationActive={false} />
-                  </AreaChart>
+                    <Area yAxisId="left" type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover" isAnimationActive={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#fbbf24" strokeWidth={2} dot={{ r: 2, fill: '#fbbf24' }} name="UV Index" isAnimationActive={false} />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             )}
@@ -441,7 +443,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'leaf' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={envData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                  <ComposedChart data={envData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorAqi" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
@@ -449,15 +451,18 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                    <YAxis yAxisId="left" stroke="#10b981" fontSize={10} tickLine={false} axisLine={false} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={10} tickLine={false} axisLine={false} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ color: '#10b981', fontWeight: 600 }}
+                      itemStyle={{ fontWeight: 600 }}
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Area type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="Air Quality Index (AQI)" isAnimationActive={false} />
-                  </AreaChart>
+                    <Area yAxisId="left" type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="AQI" isAnimationActive={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="pm25" stroke="#a855f7" strokeWidth={2} dot={false} name="PM2.5" isAnimationActive={false} />
+                    <Line yAxisId="right" type="monotone" dataKey="pm10" stroke="#f472b6" strokeWidth={2} strokeDasharray="4 4" dot={false} name="PM10" isAnimationActive={false} />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             )}
