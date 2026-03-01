@@ -361,15 +361,22 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'rain' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={rainData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
-                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <BarChart data={rainData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
-                      itemStyle={{ color: '#60a5fa' }}
+                      cursor={{ fill: '#334155', opacity: 0.4 }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ color: '#60a5fa', fontWeight: 600 }}
                     />
-                    <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Rainfall (mm)" />
+                    <Bar dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall (mm)" maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -378,15 +385,23 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'user' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={comfortData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={[-3, 3]} />
+                  <LineChart data={comfortData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} domain={[-3, 3]} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
-                      itemStyle={{ color: '#f43f5e' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ color: '#f43f5e', fontWeight: 600 }}
                     />
-                    <Line type="monotone" dataKey="pmv" stroke="#f43f5e" strokeWidth={3} dot={{ fill: '#f43f5e', r: 4 }} name="PMV" />
+                    <Line 
+                      type="monotone" 
+                      dataKey="pmv" 
+                      stroke="#f43f5e" 
+                      strokeWidth={3} 
+                      dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 4 }} 
+                      activeDot={{ r: 6, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
+                      name="PMV" 
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -395,15 +410,21 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'cloud' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={cloudData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <AreaChart data={cloudData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorCloud" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.6}/>
+                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} domain={[0, 100]} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
-                      itemStyle={{ color: '#94a3b8' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ color: '#cbd5e1', fontWeight: 600 }}
                     />
-                    <Area type="monotone" dataKey="cover" stroke="#94a3b8" fill="#cbd5e1" fillOpacity={0.3} name="Cloud Cover (%)" />
+                    <Area type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover (%)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -412,16 +433,22 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             {activeTab === 'leaf' && (
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={envData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
-                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <AreaChart data={envData} margin={{ top: 20, right: 10, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorAqi" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickMargin={10} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', borderRadius: '8px' }}
-                      itemStyle={{ color: '#10b981' }}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ color: '#10b981', fontWeight: 600 }}
                     />
-                    <Bar dataKey="aqi" fill="#10b981" radius={[4, 4, 0, 0]} name="AQI" />
-                  </BarChart>
+                    <Area type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="AQI" />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             )}
