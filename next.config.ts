@@ -9,11 +9,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Enable server actions if needed
   },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
+  // eslint 已从 next.config 移除，请使用 ESLint CLI：npm run lint / next lint
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
