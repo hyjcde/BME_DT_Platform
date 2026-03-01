@@ -32,7 +32,9 @@ import {
   Line,
   AreaChart,
   Area,
-  ComposedChart
+  ComposedChart,
+  ReferenceLine,
+  ReferenceArea
 } from 'recharts';
 
 interface TestpointDialogProps {
@@ -329,141 +331,191 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
             )}
 
             {activeTab === 'wind' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner relative overflow-hidden p-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="60%" data={windData}>
-                    <PolarGrid stroke="#334155" strokeDasharray="3 3" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 500 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ fontWeight: 600 }}
-                    />
-                    <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Radar name="Wind Gust" dataKey="gust" stroke="#8b5cf6" strokeWidth={1} fill="#a855f7" fillOpacity={0.2} isAnimationActive={false} />
-                    <Radar name="Wind Speed" dataKey="speed" stroke="#3b82f6" strokeWidth={2} fill="#60a5fa" fillOpacity={0.5} isAnimationActive={false} />
-                  </RadarChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
+                {/* Wind KPIs */}
+                <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Speed</div><div className="text-[13px] font-bold text-blue-400">2.5 m/s</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max Gust</div><div className="text-[13px] font-bold text-purple-400">4.2 m/s</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Prevailing</div><div className="text-[13px] font-bold text-white">South</div></div>
+                </div>
+                <div className="flex-1 min-h-0 relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="60%" data={windData}>
+                      <PolarGrid stroke="#334155" strokeDasharray="3 3" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 10, fontWeight: 500 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                        itemStyle={{ fontWeight: 600 }}
+                      />
+                      <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                      <Radar name="Wind Gust" dataKey="gust" stroke="#8b5cf6" strokeWidth={1} fill="#a855f7" fillOpacity={0.2} isAnimationActive={false} />
+                      <Radar name="Wind Speed" dataKey="speed" stroke="#3b82f6" strokeWidth={2} fill="#60a5fa" fillOpacity={0.5} isAnimationActive={false} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
             {activeTab === 'rain' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={rainData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
-                    <YAxis yAxisId="left" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}mm`} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
-                    <Tooltip 
-                      cursor={{ fill: '#334155', opacity: 0.4 }}
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ fontWeight: 600 }}
-                    />
-                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Bar yAxisId="left" dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall" maxBarSize={20} isAnimationActive={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#06b6d4" strokeWidth={2} dot={false} name="Humidity" isAnimationActive={false} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
+                <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">24h Total</div><div className="text-[13px] font-bold text-blue-400">18.4 mm</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak Humidity</div><div className="text-[13px] font-bold text-cyan-400">92%</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Status</div><div className="text-[13px] font-bold text-green-400">Light Rain</div></div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={rainData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                      <YAxis yAxisId="left" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}mm`} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
+                      <Tooltip 
+                        cursor={{ fill: '#334155', opacity: 0.4 }}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                        itemStyle={{ fontWeight: 600 }}
+                      />
+                      <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                      <Bar yAxisId="left" dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall" maxBarSize={20} isAnimationActive={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="#06b6d4" strokeWidth={2} dot={false} name="Humidity" isAnimationActive={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
             {activeTab === 'user' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={comfortData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
-                    <YAxis yAxisId="left" stroke="#f43f5e" fontSize={10} tickLine={false} axisLine={false} domain={[-3, 3]} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#eab308" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ fontWeight: 600 }}
-                    />
-                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Line 
-                      yAxisId="left"
-                      type="monotone" 
-                      dataKey="pmv" 
-                      stroke="#f43f5e" 
-                      strokeWidth={3} 
-                      dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 3 }} 
-                      activeDot={{ r: 5, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
-                      name="PMV Index" 
-                      isAnimationActive={false}
-                    />
-                    <Line 
-                      yAxisId="right"
-                      type="monotone" 
-                      dataKey="ppd" 
-                      stroke="#eab308" 
-                      strokeWidth={2} 
-                      strokeDasharray="5 5"
-                      dot={false}
-                      name="PPD (%)" 
-                      isAnimationActive={false}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
+                <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg PMV</div><div className="text-[13px] font-bold text-rose-400">+1.2</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max PPD</div><div className="text-[13px] font-bold text-yellow-400">42%</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Assessment</div><div className="text-[13px] font-bold text-orange-400">Slightly Warm</div></div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={comfortData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                      <YAxis yAxisId="left" stroke="#f43f5e" fontSize={10} tickLine={false} axisLine={false} domain={[-3, 3]} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#eab308" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                        itemStyle={{ fontWeight: 600 }}
+                      />
+                      <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                      <ReferenceArea y1={-0.5} y2={0.5} yAxisId="left" fill="#22c55e" fillOpacity={0.1} strokeOpacity={0} />
+                      <ReferenceLine y={0} yAxisId="left" stroke="#22c55e" strokeDasharray="3 3" opacity={0.5} />
+                      <Line 
+                        yAxisId="left"
+                        type="monotone" 
+                        dataKey="pmv" 
+                        stroke="#f43f5e" 
+                        strokeWidth={3} 
+                        dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 3 }} 
+                        activeDot={{ r: 5, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
+                        name="PMV Index" 
+                        isAnimationActive={false}
+                      />
+                      <Line 
+                        yAxisId="right"
+                        type="monotone" 
+                        dataKey="ppd" 
+                        stroke="#eab308" 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        dot={false}
+                        name="PPD (%)" 
+                        isAnimationActive={false}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
             {activeTab === 'cloud' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={cloudData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorCloud" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.6}/>
-                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.1}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
-                    <YAxis yAxisId="left" stroke="#cbd5e1" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#fbbf24" fontSize={10} tickLine={false} axisLine={false} domain={[0, 12]} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ fontWeight: 600 }}
-                    />
-                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Area yAxisId="left" type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover" isAnimationActive={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#fbbf24" strokeWidth={2} dot={{ r: 2, fill: '#fbbf24' }} name="UV Index" isAnimationActive={false} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
+                <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Avg Cloud</div><div className="text-[13px] font-bold text-slate-300">58%</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Max UV</div><div className="text-[13px] font-bold text-orange-400">8.2</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Condition</div><div className="text-[13px] font-bold text-blue-300">Partly Cloudy</div></div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={cloudData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorCloud" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                      <YAxis yAxisId="left" stroke="#cbd5e1" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#fbbf24" fontSize={10} tickLine={false} axisLine={false} domain={[0, 12]} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                        itemStyle={{ fontWeight: 600 }}
+                      />
+                      <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                      <Area yAxisId="left" type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover" isAnimationActive={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#fbbf24" strokeWidth={2} dot={{ r: 2, fill: '#fbbf24' }} name="UV Index" isAnimationActive={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
 
             {activeTab === 'leaf' && (
-              <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-4 relative overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={envData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorAqi" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
-                    <YAxis yAxisId="left" stroke="#10b981" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={10} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-                      itemStyle={{ fontWeight: 600 }}
-                    />
-                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
-                    <Area yAxisId="left" type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="AQI" isAnimationActive={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="pm25" stroke="#a855f7" strokeWidth={2} dot={false} name="PM2.5" isAnimationActive={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="pm10" stroke="#f472b6" strokeWidth={2} strokeDasharray="4 4" dot={false} name="PM10" isAnimationActive={false} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col h-[280px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-2 relative overflow-hidden">
+                <div className="flex justify-around items-center px-2 py-1.5 border-b border-slate-700/50 mb-2 shrink-0 bg-slate-800/50 rounded-lg">
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Peak AQI</div><div className="text-[13px] font-bold text-emerald-400">72</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">PM2.5 Max</div><div className="text-[13px] font-bold text-purple-400">35 µg/m³</div></div>
+                  <div className="w-px h-6 bg-slate-700/50" />
+                  <div className="text-center"><div className="text-[9px] uppercase tracking-wider text-slate-400">Air Quality</div><div className="text-[13px] font-bold text-emerald-400">Moderate</div></div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={envData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorAqi" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={20} />
+                      <YAxis yAxisId="left" stroke="#10b981" fontSize={10} tickLine={false} axisLine={false} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={10} tickLine={false} axisLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                        itemStyle={{ fontWeight: 600 }}
+                      />
+                      <Legend verticalAlign="top" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                      <ReferenceLine y={50} yAxisId="left" stroke="#eab308" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Moderate', fill: '#eab308', fontSize: 10 }} />
+                      <ReferenceLine y={100} yAxisId="left" stroke="#ef4444" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Unhealthy', fill: '#ef4444', fontSize: 10 }} />
+                      <Area yAxisId="left" type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="AQI" isAnimationActive={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="pm25" stroke="#a855f7" strokeWidth={2} dot={false} name="PM2.5" isAnimationActive={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="pm10" stroke="#f472b6" strokeWidth={2} strokeDasharray="4 4" dot={false} name="PM10" isAnimationActive={false} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )}
           </div>
