@@ -1555,80 +1555,112 @@ export default function DualModeMap() {
               </AnimatePresence>
 
               {showFlightPaths && (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <defs>
-                    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" /></marker>
-                    <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ef4444" /></marker>
-                    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#22c55e" /></marker>
-                  </defs>
-                  {mergedFlightPaths.map((path) => {
-                    const pathPoints = path.points.map(p => `${p.x},${p.y}`).join(' ');
-                    const markerEnd = path.type === 'coarse' ? 'url(#arrowBlue)' : path.type === 'fine' ? 'url(#arrowRed)' : 'url(#arrowGreen)';
-                    const pos = getAnimatedPosition(path);
-                    const isAgent = (path as any).isAgentGenerated;
-                    return (
-                      <g key={path.id}>
-                        {path.targetArea && !isAgent && <rect x={path.targetArea.x} y={path.targetArea.y} width={path.targetArea.width} height={path.targetArea.height} fill="none" stroke={path.color} strokeWidth="0.3" strokeDasharray="1,0.5" opacity="0.6" rx="0.5" />}
-                        
-                        {/* Path line - thicker for agent paths */}
-                        <polyline 
-                          points={pathPoints} 
-                          fill="none" 
-                          stroke={path.color} 
-                          strokeWidth={isAgent ? "0.6" : "0.4"} 
-                          strokeDasharray={isAgent ? "1.2,0.5" : "1.5,0.8"} 
-                          markerEnd={isAgent ? undefined : markerEnd} 
-                          opacity="0.9" 
-                          strokeLinecap="round"
-                        />
-                        
-                        {/* Waypoint markers with numbers */}
-                        {path.points.map((point, idx) => (
-                          <g key={`wp-${path.id}-${idx}`}>
-                            <circle cx={point.x} cy={point.y} r={isAgent ? "1" : "0.8"} fill={path.color} stroke="white" strokeWidth="0.2" opacity="0.9" />
-                            <text x={point.x} y={point.y - 1.5} textAnchor="middle" fill={path.color} fontSize="1.2" fontWeight="bold">{idx + 1}</text>
-                          </g>
-                        ))}
-                        
-                        {/* UAV position with pulse effect */}
-                        <circle cx={pos.x} cy={pos.y} r="1" fill={path.color} stroke="white" strokeWidth="0.3" />
-                        <circle cx={pos.x} cy={pos.y} r="1" fill="none" stroke={path.color} strokeWidth="0.3">
-                        </circle>
-
-                        {/* AGENT badge for agent-generated paths */}
-                        {isAgent && path.points[0] && (
-                          <g>
-                            <rect 
-                              x={path.points[0].x - 3} 
-                              y={path.points[0].y - 4} 
-                              width="6" 
-                              height="2" 
-                              fill="rgba(168,85,247,0.9)" 
-                              rx="0.5"
-                            />
-                            <text 
-                              x={path.points[0].x} 
-                              y={path.points[0].y - 2.5} 
-                              textAnchor="middle" 
-                              fill="white" 
-                              fontSize="0.8" 
-                              fontWeight="bold"
-                            >AGENT</text>
-                          </g>
-                        )}
+                <>
+                  {/* SVG for scalable lines */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" /></marker>
+                      <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ef4444" /></marker>
+                      <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#22c55e" /></marker>
+                    </defs>
+                    {mergedFlightPaths.map((path) => {
+                      const pathPoints = path.points.map(p => `${p.x},${p.y}`).join(' ');
+                      const markerEnd = path.type === 'coarse' ? 'url(#arrowBlue)' : path.type === 'fine' ? 'url(#arrowRed)' : 'url(#arrowGreen)';
+                      const isAgent = (path as any).isAgentGenerated;
+                      return (
+                        <g key={`path-${path.id}`}>
+                          {path.targetArea && !isAgent && <rect x={path.targetArea.x} y={path.targetArea.y} width={path.targetArea.width} height={path.targetArea.height} fill="none" stroke={path.color} strokeWidth="0.3" strokeDasharray="1,0.5" opacity="0.6" rx="0.5" />}
+                          <polyline 
+                            points={pathPoints} 
+                            fill="none" 
+                            stroke={path.color} 
+                            strokeWidth={isAgent ? "0.6" : "0.4"} 
+                            strokeDasharray={isAgent ? "1.2,0.5" : "1.5,0.8"} 
+                            markerEnd={isAgent ? undefined : markerEnd} 
+                            opacity="0.9" 
+                            strokeLinecap="round"
+                          />
+                        </g>
+                      );
+                    })}
+                    {waypoints.map((wp, i) => (
+                      <g key={`plan-line-${wp.id}`}>
+                        {i > 0 && <line x1={waypoints[i-1].x} y1={waypoints[i-1].y} x2={wp.x} y2={wp.y} stroke="#06b6d4" strokeWidth="0.35" strokeDasharray="0.8,0.5" />}
                       </g>
-                    );
-                  })}
+                    ))}
+                  </svg>
 
-                  {/* Planning waypoints */}
-                  {waypoints.map((wp, i) => (
-                    <g key={wp.id}>
-                      {i > 0 && <line x1={waypoints[i-1].x} y1={waypoints[i-1].y} x2={wp.x} y2={wp.y} stroke="#06b6d4" strokeWidth="0.35" strokeDasharray="0.8,0.5" />}
-                      <circle cx={wp.x} cy={wp.y} r="1.2" fill="#06b6d4" stroke="white" strokeWidth="0.25" />
-                      <text x={wp.x} y={wp.y + 0.4} textAnchor="middle" fill="white" fontSize="1" fontWeight="bold">{i + 1}</text>
-                    </g>
-                  ))}
-                </svg>
+                  {/* HTML overlay for perfect circles and text */}
+                  <div className="absolute inset-0 w-full h-full pointer-events-none z-20">
+                    {mergedFlightPaths.map((path) => {
+                      const pos = getAnimatedPosition(path);
+                      const isAgent = (path as any).isAgentGenerated;
+                      return (
+                        <div key={`markers-${path.id}`}>
+                          {/* Waypoints */}
+                          {path.points.map((point, idx) => (
+                            <div 
+                              key={`wp-${path.id}-${idx}`}
+                              className="absolute flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2"
+                              style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                            >
+                              <div 
+                                className="flex items-center justify-center rounded-full border-2 border-white shadow-sm"
+                                style={{ 
+                                  width: isAgent ? '20px' : '16px', 
+                                  height: isAgent ? '20px' : '16px', 
+                                  backgroundColor: path.color,
+                                  opacity: 0.95
+                                }}
+                              >
+                                <span className="text-white font-bold" style={{ fontSize: isAgent ? '10px' : '9px' }}>{idx + 1}</span>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* UAV Position Pulse */}
+                          <div
+                            className="absolute -translate-x-1/2 -translate-y-1/2"
+                            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                          >
+                            <div 
+                              className="w-5 h-5 rounded-full border-[2px] border-white shadow-md relative flex items-center justify-center"
+                              style={{ backgroundColor: path.color }}
+                            >
+                              <div 
+                                className="absolute inset-0 rounded-full animate-ping"
+                                style={{ backgroundColor: path.color, opacity: 0.5 }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* AGENT Badge */}
+                          {isAgent && path.points[0] && (
+                            <div 
+                              className="absolute -translate-x-1/2 -translate-y-[200%] bg-purple-500/90 text-white font-bold rounded shadow-lg border border-purple-400"
+                              style={{ left: `${path.points[0].x}%`, top: `${path.points[0].y}%`, padding: '2px 6px', fontSize: '9px' }}
+                            >
+                              AGENT
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Planning waypoints */}
+                    {waypoints.map((wp, i) => (
+                      <div
+                        key={`plan-wp-${wp.id}`}
+                        className="absolute flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
+                        style={{ left: `${wp.x}%`, top: `${wp.y}%` }}
+                      >
+                        <div className="w-[18px] h-[18px] rounded-full bg-cyan-500 border-2 border-white flex items-center justify-center shadow-md">
+                          <span className="text-white text-[9px] font-bold">{i + 1}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
 
               {showFlightPaths && mergedFlightPaths.map((path) => {

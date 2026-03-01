@@ -341,10 +341,14 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
               <div className="h-[280px] w-full flex items-center justify-center bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="45%" cy="50%" outerRadius="70%" data={windData}>
-                    <PolarGrid stroke="#475569" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 12, fontWeight: 600 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 3]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                    <Radar name="Wind" dataKey="A" stroke="#60a5fa" strokeWidth={2} fill="#3b82f6" fillOpacity={0.5} />
+                    <PolarGrid stroke="#334155" strokeDasharray="3 3" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#cbd5e1', fontSize: 11, fontWeight: 500 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 3]} tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                      itemStyle={{ color: '#60a5fa', fontWeight: 600 }}
+                    />
+                    <Radar name="Wind Speed (m/s)" dataKey="A" stroke="#60a5fa" strokeWidth={2} fill="#3b82f6" fillOpacity={0.4} animationDuration={1500} />
                   </RadarChart>
                 </ResponsiveContainer>
                 {/* Wind legend overlay */}
@@ -376,7 +380,8 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
                       itemStyle={{ color: '#60a5fa', fontWeight: 600 }}
                     />
-                    <Bar dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall (mm)" maxBarSize={40} />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                    <Bar dataKey="amount" fill="url(#colorRain)" radius={[4, 4, 0, 0]} name="Rainfall (mm)" maxBarSize={40} animationDuration={1500} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -393,6 +398,7 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
                       itemStyle={{ color: '#f43f5e', fontWeight: 600 }}
                     />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
                     <Line 
                       type="monotone" 
                       dataKey="pmv" 
@@ -400,7 +406,8 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       strokeWidth={3} 
                       dot={{ fill: '#0f172a', stroke: '#f43f5e', strokeWidth: 2, r: 4 }} 
                       activeDot={{ r: 6, fill: '#f43f5e', stroke: '#fff', strokeWidth: 2 }}
-                      name="PMV" 
+                      name="PMV (Predicted Mean Vote)" 
+                      animationDuration={1500}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -424,7 +431,8 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
                       itemStyle={{ color: '#cbd5e1', fontWeight: 600 }}
                     />
-                    <Area type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover (%)" />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                    <Area type="monotone" dataKey="cover" stroke="#cbd5e1" strokeWidth={2} fill="url(#colorCloud)" name="Cloud Cover (%)" animationDuration={1500} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -447,7 +455,8 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
                       itemStyle={{ color: '#10b981', fontWeight: 600 }}
                     />
-                    <Area type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="AQI" />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }}/>
+                    <Area type="monotone" dataKey="aqi" stroke="#10b981" strokeWidth={2} fill="url(#colorAqi)" name="Air Quality Index (AQI)" animationDuration={1500} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
