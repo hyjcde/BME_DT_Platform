@@ -8,41 +8,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 31.38,
-      "relative_humidity": 65.3,
-      "light": 7025.69,
-      "dew_point": 23.34
+      "dew_point": 21.31,
+      "humidity": 71.41,
+      "light": 2.77,
+      "temperature": 26.9
     },
     "statistics": {
-      "temperature": {
-        "min": 26.2,
-        "max": 43.74,
-        "avg": 31.38,
-        "unit": "\u00b0C",
-        "count": 2331
+      "dew_point": {
+        "min": 19.07,
+        "max": 28.83,
+        "avg": 23.34,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
       },
-      "relative_humidity": {
+      "humidity": {
         "min": 29.89,
         "max": 88.89,
         "avg": 65.3,
         "unit": "%",
-        "count": 2331
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
       },
       "light": {
         "min": 2.52,
         "max": 44072.96,
         "avg": 7025.69,
         "unit": "lux",
-        "count": 2331
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
       },
-      "dew_point": {
-        "min": 19.07,
-        "max": 28.83,
-        "avg": 23.34,
-        "unit": "\u00b0C",
-        "count": 2331
+      "temperature": {
+        "min": 26.2,
+        "max": 43.74,
+        "avg": 31.38,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 2,
@@ -53,41 +63,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 30.13,
-      "relative_humidity": 69.68,
-      "light": 1018.7,
-      "dew_point": 23.81
+      "dew_point": 21.34,
+      "humidity": 69.28,
+      "light": 1.04,
+      "temperature": 27.44
     },
     "statistics": {
-      "temperature": {
-        "min": 26.68,
-        "max": 35.41,
-        "avg": 30.13,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 49.97,
-        "max": 89.25,
-        "avg": 69.68,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 38717.44,
-        "avg": 1018.7,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 21.31,
         "max": 28.84,
         "avg": 23.81,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 49.97,
+        "max": 89.25,
+        "avg": 69.68,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 38717.44,
+        "avg": 1018.7,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 26.68,
+        "max": 35.41,
+        "avg": 30.13,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 3,
@@ -98,41 +118,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 31.6,
-      "relative_humidity": 63.04,
-      "light": 6948.38,
-      "dew_point": 23.24
+      "dew_point": 21.08,
+      "humidity": 68.96,
+      "light": 2.37,
+      "temperature": 27.25
     },
     "statistics": {
-      "temperature": {
-        "min": 26.59,
-        "max": 40.47,
-        "avg": 31.6,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 39.87,
-        "max": 86.78,
-        "avg": 63.04,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 1341521.92,
-        "avg": 6948.38,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 20.31,
         "max": 30.3,
         "avg": 23.24,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 39.87,
+        "max": 86.78,
+        "avg": 63.04,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 1341521.92,
+        "avg": 6948.38,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 26.59,
+        "max": 40.47,
+        "avg": 31.6,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 4,
@@ -143,41 +173,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 32.44,
-      "relative_humidity": 61.92,
-      "light": 17387.09,
-      "dew_point": 23.06
+      "dew_point": 21.47,
+      "humidity": 71.37,
+      "light": 0.0,
+      "temperature": 27.07
     },
     "statistics": {
-      "temperature": {
-        "min": 25.85,
-        "max": 44.58,
-        "avg": 32.44,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 28.37,
-        "max": 91.77,
-        "avg": 61.92,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 69734.4,
-        "avg": 17387.09,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 17.96,
         "max": 29.02,
         "avg": 23.06,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 28.37,
+        "max": 91.77,
+        "avg": 61.92,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 69734.4,
+        "avg": 17387.09,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 25.85,
+        "max": 44.58,
+        "avg": 32.44,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 5,
@@ -188,41 +228,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 30.62,
-      "relative_humidity": 66.25,
-      "light": 8821.88,
-      "dew_point": 23.03
+      "dew_point": 21.2,
+      "humidity": 71.62,
+      "light": 0.0,
+      "temperature": 26.73
     },
     "statistics": {
-      "temperature": {
-        "min": 25.61,
-        "max": 38.9,
-        "avg": 30.62,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 39.48,
-        "max": 92.07,
-        "avg": 66.25,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 70553.6,
-        "avg": 8821.88,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 19.51,
         "max": 30.89,
         "avg": 23.03,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 39.48,
+        "max": 92.07,
+        "avg": 66.25,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 70553.6,
+        "avg": 8821.88,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 25.61,
+        "max": 38.9,
+        "avg": 30.62,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 6,
@@ -233,41 +283,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 31.04,
-      "relative_humidity": 67.36,
-      "light": 3564.98,
-      "dew_point": 23.92
+      "dew_point": 21.18,
+      "humidity": 68.89,
+      "light": 0.0,
+      "temperature": 27.37
     },
     "statistics": {
-      "temperature": {
-        "min": 25.94,
-        "max": 42.96,
-        "avg": 31.04,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 38.98,
-        "max": 88.86,
-        "avg": 67.36,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 41615.36,
-        "avg": 3564.98,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 21.16,
         "max": 28.69,
         "avg": 23.92,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 38.98,
+        "max": 88.86,
+        "avg": 67.36,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 41615.36,
+        "avg": 3564.98,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 25.94,
+        "max": 42.96,
+        "avg": 31.04,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 7,
@@ -278,41 +338,51 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {
-      "temperature": 31.92,
-      "relative_humidity": 63.85,
-      "light": 12543.07,
-      "dew_point": 23.32
+      "dew_point": 21.4,
+      "humidity": 70.74,
+      "light": 1.31,
+      "temperature": 27.15
     },
     "statistics": {
-      "temperature": {
-        "min": 25.86,
-        "max": 45.0,
-        "avg": 31.92,
-        "unit": "\u00b0C",
-        "count": 2331
-      },
-      "relative_humidity": {
-        "min": 29.5,
-        "max": 91.16,
-        "avg": 63.85,
-        "unit": "%",
-        "count": 2331
-      },
-      "light": {
-        "min": 0,
-        "max": 85647.36,
-        "avg": 12543.07,
-        "unit": "lux",
-        "count": 2331
-      },
       "dew_point": {
         "min": 18.76,
         "max": 34.72,
         "avg": 23.32,
-        "unit": "\u00b0C",
-        "count": 2331
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Dew_point"
+      },
+      "humidity": {
+        "min": 29.5,
+        "max": 91.16,
+        "avg": 63.85,
+        "unit": "%",
+        "count": 2331,
+        "source_sheet": "HOBO_RH"
+      },
+      "light": {
+        "min": 0.0,
+        "max": 85647.36,
+        "avg": 12543.07,
+        "unit": "lux",
+        "count": 2331,
+        "source_sheet": "HOBO_Light"
+      },
+      "temperature": {
+        "min": 25.86,
+        "max": 45.0,
+        "avg": 31.92,
+        "unit": "°C",
+        "count": 2331,
+        "source_sheet": "HOBO_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "dew_point",
+      "humidity",
+      "light",
+      "temperature"
+    ]
   },
   {
     "id": 8,
@@ -323,7 +393,8 @@
     "device_type": "HOBO MX",
     "color": "#3b82f6",
     "current_values": {},
-    "statistics": {}
+    "statistics": {},
+    "available_metrics": []
   },
   {
     "id": 9,
@@ -334,73 +405,101 @@
     "device_type": "Weather Station",
     "color": "#22c55e",
     "current_values": {
-      "globe_temperature": 38.38,
-      "wind_speed": 0.85,
-      "solar_radiation": 614.79,
-      "air_temperature": 30.43,
-      "rh_station": 58.51,
-      "pm10": 31.84,
-      "pm25": 25.02,
-      "pressure": 99.94
+      "air_temperature": 29.2,
+      "globe_temperature": 30.3,
+      "humidity": 58.2,
+      "pm10": 15.0,
+      "pm25": 12.0,
+      "pressure": 99.8,
+      "solar_radiation": 5.0,
+      "wind_direction": 10.3,
+      "wind_speed": 0.63
     },
     "statistics": {
+      "air_temperature": {
+        "min": 28.4,
+        "max": 32.0,
+        "avg": 30.43,
+        "unit": "°C",
+        "count": 488,
+        "source_sheet": "Air_temp"
+      },
       "globe_temperature": {
         "min": 30.3,
         "max": 42.3,
         "avg": 38.38,
-        "unit": "\u00b0C",
-        "count": 487
+        "unit": "°C",
+        "count": 487,
+        "source_sheet": "GlobE_temp"
       },
-      "wind_speed": {
-        "min": 0,
-        "max": 2.76,
-        "avg": 0.85,
-        "unit": "m/s",
-        "count": 488
-      },
-      "solar_radiation": {
-        "min": 3,
-        "max": 1069,
-        "avg": 614.79,
-        "unit": "W/m\u00b2",
-        "count": 488
-      },
-      "air_temperature": {
-        "min": 28.4,
-        "max": 32,
-        "avg": 30.43,
-        "unit": "\u00b0C",
-        "count": 488
-      },
-      "rh_station": {
+      "humidity": {
         "min": 51.6,
         "max": 68.9,
         "avg": 58.51,
         "unit": "%",
-        "count": 488
+        "count": 488,
+        "source_sheet": "RH"
       },
       "pm10": {
-        "min": 10,
-        "max": 52,
+        "min": 10.0,
+        "max": 52.0,
         "avg": 31.84,
-        "unit": "\u03bcg/m\u00b3",
-        "count": 488
+        "unit": "μg/m³",
+        "count": 488,
+        "source_sheet": "PM10"
       },
       "pm25": {
-        "min": 9,
-        "max": 36,
+        "min": 9.0,
+        "max": 36.0,
         "avg": 25.02,
-        "unit": "\u03bcg/m\u00b3",
-        "count": 488
+        "unit": "μg/m³",
+        "count": 488,
+        "source_sheet": "PM25"
       },
       "pressure": {
         "min": 99.8,
         "max": 100.2,
         "avg": 99.94,
         "unit": "kPa",
-        "count": 488
+        "count": 488,
+        "source_sheet": "Pressure"
+      },
+      "solar_radiation": {
+        "min": 3.0,
+        "max": 1069.0,
+        "avg": 614.79,
+        "unit": "W/m²",
+        "count": 488,
+        "source_sheet": "Solar_radiation"
+      },
+      "wind_direction": {
+        "min": 0.0,
+        "max": 35.3,
+        "avg": 17.82,
+        "unit": "°",
+        "count": 488,
+        "source_sheet": "Wind_direction"
+      },
+      "wind_speed": {
+        "min": 0.0,
+        "max": 2.76,
+        "avg": 0.85,
+        "unit": "m/s",
+        "count": 488,
+        "source_sheet": "Wind_speed"
       }
-    }
+    },
+    "available_metrics": [
+      "air_temperature",
+      "globe_temperature",
+      "humidity",
+      "pm10",
+      "pm25",
+      "pressure",
+      "solar_radiation",
+      "wind_direction",
+      "wind_speed"
+    ]
   },
   {
     "id": 10,
@@ -411,81 +510,101 @@
     "device_type": "Weather Station",
     "color": "#22c55e",
     "current_values": {
-      "globe_temperature": 36.42,
-      "wind_direction": 20.02,
-      "wind_speed": 1.18,
-      "solar_radiation": 632.9,
-      "air_temperature": 29.66,
-      "rh_station": 59.9,
-      "pm10": 24.48,
-      "pm25": 18.44,
-      "pressure": 99.94
+      "air_temperature": 28.9,
+      "globe_temperature": 31.1,
+      "humidity": 58.9,
+      "pm10": 10.0,
+      "pm25": 7.0,
+      "pressure": 99.8,
+      "solar_radiation": 0.0,
+      "wind_direction": 23.1,
+      "wind_speed": 0.52
     },
     "statistics": {
-      "globe_temperature": {
-        "min": 31,
-        "max": 40.8,
-        "avg": 36.42,
-        "unit": "\u00b0C",
-        "count": 487
-      },
-      "wind_direction": {
-        "min": 0,
-        "max": 34.4,
-        "avg": 20.02,
-        "unit": "\u00b0",
-        "count": 488
-      },
-      "wind_speed": {
-        "min": 0,
-        "max": 3.05,
-        "avg": 1.18,
-        "unit": "m/s",
-        "count": 488
-      },
-      "solar_radiation": {
-        "min": 0,
-        "max": 1196,
-        "avg": 632.9,
-        "unit": "W/m\u00b2",
-        "count": 488
-      },
       "air_temperature": {
         "min": 26.7,
         "max": 31.8,
         "avg": 29.66,
-        "unit": "\u00b0C",
-        "count": 488
+        "unit": "°C",
+        "count": 488,
+        "source_sheet": "Air_temp"
       },
-      "rh_station": {
+      "globe_temperature": {
+        "min": 31.0,
+        "max": 40.8,
+        "avg": 36.42,
+        "unit": "°C",
+        "count": 487,
+        "source_sheet": "GlobE_temp"
+      },
+      "humidity": {
         "min": 53.1,
         "max": 72.3,
         "avg": 59.9,
         "unit": "%",
-        "count": 488
+        "count": 488,
+        "source_sheet": "RH"
       },
       "pm10": {
-        "min": 8,
-        "max": 44,
+        "min": 8.0,
+        "max": 44.0,
         "avg": 24.48,
-        "unit": "\u03bcg/m\u00b3",
-        "count": 488
+        "unit": "μg/m³",
+        "count": 488,
+        "source_sheet": "PM10"
       },
       "pm25": {
-        "min": 5,
-        "max": 31,
+        "min": 5.0,
+        "max": 31.0,
         "avg": 18.44,
-        "unit": "\u03bcg/m\u00b3",
-        "count": 488
+        "unit": "μg/m³",
+        "count": 488,
+        "source_sheet": "PM25"
       },
       "pressure": {
         "min": 99.8,
         "max": 100.2,
         "avg": 99.94,
         "unit": "kPa",
-        "count": 488
+        "count": 488,
+        "source_sheet": "Pressure"
+      },
+      "solar_radiation": {
+        "min": 0.0,
+        "max": 1196.0,
+        "avg": 632.9,
+        "unit": "W/m²",
+        "count": 488,
+        "source_sheet": "Solar_radiation"
+      },
+      "wind_direction": {
+        "min": 0.0,
+        "max": 34.4,
+        "avg": 20.02,
+        "unit": "°",
+        "count": 488,
+        "source_sheet": "Wind_direction"
+      },
+      "wind_speed": {
+        "min": 0.0,
+        "max": 3.05,
+        "avg": 1.18,
+        "unit": "m/s",
+        "count": 488,
+        "source_sheet": "Wind_speed"
       }
-    }
+    },
+    "available_metrics": [
+      "air_temperature",
+      "globe_temperature",
+      "humidity",
+      "pm10",
+      "pm25",
+      "pressure",
+      "solar_radiation",
+      "wind_direction",
+      "wind_speed"
+    ]
   },
   {
     "id": 11,
@@ -496,17 +615,21 @@
     "device_type": "Thermocouple",
     "color": "#f59e0b",
     "current_values": {
-      "surface_temperature": 39.82
+      "surface_temperature": 35.49
     },
     "statistics": {
       "surface_temperature": {
         "min": 30.92,
         "max": 42.56,
         "avg": 39.82,
-        "unit": "\u00b0C",
-        "count": 391
+        "unit": "°C",
+        "count": 391,
+        "source_sheet": "Thermocouple_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "surface_temperature"
+    ]
   },
   {
     "id": 12,
@@ -517,17 +640,21 @@
     "device_type": "Thermocouple",
     "color": "#f59e0b",
     "current_values": {
-      "surface_temperature": 46.09
+      "surface_temperature": 40.66
     },
     "statistics": {
       "surface_temperature": {
         "min": 40.66,
         "max": 50.15,
         "avg": 46.09,
-        "unit": "\u00b0C",
-        "count": 391
+        "unit": "°C",
+        "count": 391,
+        "source_sheet": "Thermocouple_Temp"
       }
-    }
+    },
+    "available_metrics": [
+      "surface_temperature"
+    ]
   },
   {
     "id": 13,
@@ -538,16 +665,50 @@
     "device_type": "Radiation Tracker",
     "color": "#a855f7",
     "current_values": {
-      "radiation": 547.54
+      "diffuse_radiation": 0.0,
+      "direct_horizontal_radiation": 1529.0,
+      "direct_normal_radiation": 2000.0,
+      "solar_radiation": 5.0
     },
     "statistics": {
-      "radiation": {
-        "min": 0,
-        "max": 2000,
-        "avg": 547.54,
-        "unit": "W/m\u00b2",
-        "count": 1564
+      "diffuse_radiation": {
+        "min": 0.0,
+        "max": 190.0,
+        "avg": 105.08,
+        "unit": "W/m²",
+        "count": 391,
+        "source_sheet": "Radiation"
+      },
+      "direct_horizontal_radiation": {
+        "min": 0.0,
+        "max": 1529.0,
+        "avg": 553.66,
+        "unit": "W/m²",
+        "count": 391,
+        "source_sheet": "Radiation"
+      },
+      "direct_normal_radiation": {
+        "min": 43.0,
+        "max": 2000.0,
+        "avg": 921.29,
+        "unit": "W/m²",
+        "count": 391,
+        "source_sheet": "Radiation"
+      },
+      "solar_radiation": {
+        "min": 3.0,
+        "max": 1069.0,
+        "avg": 610.12,
+        "unit": "W/m²",
+        "count": 391,
+        "source_sheet": "Radiation"
       }
-    }
+    },
+    "available_metrics": [
+      "diffuse_radiation",
+      "direct_horizontal_radiation",
+      "direct_normal_radiation",
+      "solar_radiation"
+    ]
   }
 ]

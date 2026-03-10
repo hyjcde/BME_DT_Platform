@@ -104,8 +104,7 @@ export default function SimulationResults() {
       if (tp.statistics?.temperature?.avg) temps.push(tp.statistics.temperature.avg);
       if (tp.statistics?.air_temperature?.avg) temps.push(tp.statistics.air_temperature.avg);
       if (tp.statistics?.surface_temperature?.avg) temps.push(tp.statistics.surface_temperature.avg);
-      if (tp.statistics?.relative_humidity?.avg) humidities.push(tp.statistics.relative_humidity.avg);
-      if (tp.statistics?.rh_station?.avg) humidities.push(tp.statistics.rh_station.avg);
+      if (tp.statistics?.humidity?.avg) humidities.push(tp.statistics.humidity.avg);
     });
     
     const avgTemp = temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : 0;
@@ -136,8 +135,7 @@ export default function SimulationResults() {
         tp.statistics?.temperature || 
         tp.statistics?.air_temperature || 
         tp.statistics?.surface_temperature ||
-        tp.statistics?.relative_humidity ||
-        tp.statistics?.rh_station
+        tp.statistics?.humidity
       )
       .map(tp => tp.id);
     // No limit - show all testpoints with data
@@ -230,7 +228,7 @@ export default function SimulationResults() {
         <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-500/50 rounded-br-sm" />
 
         {/* Header Row */}
-        <div className="px-2 py-1.5 border-b border-slate-700/50 flex items-center justify-between bg-gradient-to-r from-[#0a0e1a] to-[#111827]">
+        <div className="px-2 py-1.5 border-b border-slate-700/50 flex items-center justify-between bg-linear-to-r from-[#0a0e1a] to-[#111827]">
           <div className="flex items-center gap-1.5">
             <Activity className="w-3.5 h-3.5 text-orange-400" />
             <span className="text-xs font-semibold text-white">Simulation</span>
@@ -299,7 +297,7 @@ export default function SimulationResults() {
             className="fixed inset-4 z-50 card-glass bg-[#080c14]/98 flex flex-col shadow-2xl border-cyan-500/30"
           >
             {/* Modal Header */}
-            <div className="p-4 border-b border-slate-700/50 flex items-center justify-between bg-gradient-to-r from-[#0a0e1a] to-[#111827]">
+            <div className="p-4 border-b border-slate-700/50 flex items-center justify-between bg-linear-to-r from-[#0a0e1a] to-[#111827]">
               <div className="flex items-center gap-3">
                 <Activity className="w-5 h-5 text-orange-400" />
                 <div>

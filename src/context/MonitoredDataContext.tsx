@@ -9,7 +9,11 @@ interface TestpointStatistics {
   avg: number;
   unit: string;
   count: number;
+  source_sheet?: string;
 }
+
+type TestpointMetricValues = Record<string, number>;
+type TimeseriesMetricValues = Record<string, number | null>;
 
 interface Testpoint {
   id: number;
@@ -19,18 +23,14 @@ interface Testpoint {
   lng: number;
   device_type: string;
   color: string;
-  current_values: Record<string, number>;
+  current_values: TestpointMetricValues;
   statistics: Record<string, TestpointStatistics>;
+  available_metrics?: string[];
 }
 
 interface TimeseriesFrame {
   timestamp: string;
-  testpoints: Record<string, {
-    temperature: number | null;
-    humidity: number | null;
-    wind_speed: number | null;
-    solar_radiation: number | null;
-  }>;
+  testpoints: Record<string, TimeseriesMetricValues>;
 }
 
 interface MonitoredDataContextType {

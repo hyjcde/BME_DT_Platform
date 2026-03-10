@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Enable turbopack with empty config
   turbopack: {},
   // Transpile cesium and resium
-  transpilePackages: ["cesium", "resium"],
+  transpilePackages: ["cesium", "resium", "three", "@react-three/fiber", "@react-three/drei"],
   // Ignore webpack configuration for Turbopack
   experimental: {
     // Enable server actions if needed

@@ -1,5 +1,6 @@
 'use client';
 
+import { RECORDED_FLIGHT_PATHS } from '@/data/recordedFlightPaths';
 import { FlightPath as AgentFlightPath, useFlightPlan } from '@/context/FlightPlanContext';
 import { useMonitoredData } from '@/context/MonitoredDataContext';
 import TestpointDialog from './TestpointDialog';
@@ -14,12 +15,14 @@ import {
   ChevronDown,
   ChevronUp,
   Circle,
+  Clock,
   Droplets,
   Eye,
   EyeOff,
   Gauge,
   Globe,
   Layers,
+  Leaf,
   Map,
   MapPin,
   Maximize2,
@@ -41,8 +44,11 @@ import {
   ZoomIn,
   ZoomOut
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+const ThreeMap = dynamic(() => import('./ThreeMap'), { ssr: false });
 
 // Types
 interface WaypointType {
@@ -78,6 +84,9 @@ interface HeatZone {
   temp: number;
   name: string;
 }
+
+type ThreeDEngine = 'three' | 'cesium';
+type MapLayerId = 'rgb' | 'thermal' | 'ndvi';
 
 // Initial data - IDs match Context format (UAV-01, UAV-02, UAV-03)
 const initialFlightPaths: FlightPath[] = [
@@ -152,6 +161,64 @@ const MAP_BOUNDS = {
   maxLat: 22.430,
 };
 
+const MAP_LAYER_CONFIG: Record<MapLayerId, {
+  id: MapLayerId;
+  label: string;
+  shortLabel: string;
+  description: string;
+  src: string;
+  accentClasses: string;
+  icon: typeof Map;
+  legend: 'none' | 'thermal' | 'ndvi';
+  available: boolean;
+}> = {
+  rgb: {
+    id: 'rgb',
+    label: 'RGB',
+    shortLabel: 'RGB',
+    description: 'True-color base imagery for orientation and route planning.',
+    src: '/rgb.png',
+    accentClasses: 'border-slate-300/60 bg-slate-500/20 text-slate-100',
+    icon: Map,
+    legend: 'none',
+    available: true,
+  },
+  thermal: {
+    id: 'thermal',
+    label: 'Thermal',
+    shortLabel: 'Thermal',
+    description: 'Thermal raster for hotspot detection and heat-risk interpretation.',
+    src: '/heatmap.png',
+    accentClasses: 'border-orange-400/60 bg-orange-500/20 text-orange-100',
+    icon: Thermometer,
+    legend: 'thermal',
+    available: true,
+  },
+  ndvi: {
+    id: 'ndvi',
+    label: 'NDVI',
+    shortLabel: 'NDVI',
+    description: 'Vegetation index (0–1). High values indicate dense, healthy vegetation cover.',
+    src: '/ndvi.png',
+    accentClasses: 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100',
+    icon: Leaf,
+    legend: 'ndvi',
+    available: true,
+  },
+};
+
+// NDVI time-series: 8 hourly slots from 10:00–17:00
+const NDVI_HOURS = [
+  { key: '1000', label: '10:00', src: '/ndvi/ndvi_1000.png' },
+  { key: '1100', label: '11:00', src: '/ndvi/ndvi_1100.png' },
+  { key: '1200', label: '12:00', src: '/ndvi/ndvi_1200.png' },
+  { key: '1300', label: '13:00', src: '/ndvi/ndvi_1300.png' },
+  { key: '1400', label: '14:00', src: '/ndvi/ndvi_1400.png' },
+  { key: '1500', label: '15:00', src: '/ndvi/ndvi_1500.png' },
+  { key: '1600', label: '16:00', src: '/ndvi/ndvi_1600.png' },
+  { key: '1700', label: '17:00', src: '/ndvi/ndvi_1700.png' },
+] as const;
+
 const percentToGeo = (x: number, y: number) => ({
   lng: MAP_BOUNDS.minLng + (x / 100) * (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng),
   lat: MAP_BOUNDS.maxLat - (y / 100) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat),
@@ -170,6 +237,7 @@ export default function DualModeMap() {
   const clickHandlerRef = useRef<any>(null);
   const flightPathEntitiesRef = useRef<any[]>([]);
   const agentPathEntitiesRef = useRef<any[]>([]);
+  const recordedFlightEntitiesRef = useRef<any[]>([]);
   const testpointEntitiesRef = useRef<any[]>([]); // Testpoint markers in 3D
   const campusModelRef = useRef<any>(null); // Reference to CUHK campus model
   
@@ -179,24 +247,44 @@ export default function DualModeMap() {
   // Monitored data from context
   const { 
     testpoints, 
+    timeseries,
+    currentFrame,
     selectedTestpointId, 
     setSelectedTestpointId, 
     getCurrentValue,
     loading: monitoredDataLoading 
   } = useMonitoredData();
+
+  // Parse current frame timestamp to decimal hour for 3D lighting sync
+  const timeOfDay = useMemo(() => {
+    if (timeseries.length === 0) return 12;
+    const frame = timeseries[currentFrame];
+    if (!frame?.timestamp) return 12;
+    const parts = frame.timestamp.split(' ');
+    const timePart = parts.length >= 2 ? parts[1] : parts[0];
+    const [hStr, mStr] = timePart.split(':');
+    const h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    if (isNaN(h)) return 12;
+    return h + (isNaN(m) ? 0 : m / 60);
+  }, [timeseries, currentFrame]);
   
   const [mounted, setMounted] = useState(false);
   const [is3DMode, setIs3DMode] = useState(false);
+  const [active3DEngine, setActive3DEngine] = useState<ThreeDEngine>('three');
   const [cesiumLoaded, setCesiumLoaded] = useState(false);
   const [cesiumError, setCesiumError] = useState<string | null>(null);
   const [cesiumInitializing, setCesiumInitializing] = useState(false);
   const [modelLoading, setModelLoading] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   
-  const [showThermalOverlay, setShowThermalOverlay] = useState(true);
+  const [active2DLayer, setActive2DLayer] = useState<MapLayerId>('thermal');
+  const [ndviHourIndex, setNdviHourIndex] = useState(0);
+  const [ndviPlaying, setNdviPlaying] = useState(false);
+  const ndviTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [showFlightPaths, setShowFlightPaths] = useState(true);
   const [showHeatZones, setShowHeatZones] = useState(true);
-  const [showTestpoints, setShowTestpoints] = useState(true); // New: show testpoint markers
+  const [showTestpoints, setShowTestpoints] = useState(true);
   const [isFlying, setIsFlying] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   
@@ -249,6 +337,16 @@ export default function DualModeMap() {
   // 3D camera controls
   const [cameraHeight, setCameraHeight] = useState(1500);
   const [cameraPitch, setCameraPitch] = useState(-45);
+
+  const recordedFlightOverlayPaths = useMemo(() => {
+    return RECORDED_FLIGHT_PATHS.map((path) => ({
+      ...path,
+      percentPoints: path.points.map((point) => ({
+        ...point,
+        ...geoToPercent(point.lng, point.lat),
+      })),
+    }));
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -758,6 +856,8 @@ export default function DualModeMap() {
     });
     flightPathEntitiesRef.current = [];
 
+    if (!showFlightPaths) return;
+
     // Remove any existing entities with same IDs first
     mergedFlightPaths.forEach((path) => {
       const existingIds = [`uav-${path.id}`, `path-${path.id}`];
@@ -829,7 +929,7 @@ export default function DualModeMap() {
         console.warn('Error adding flight path entity:', err);
       }
     });
-  }, [mergedFlightPaths]);
+  }, [mergedFlightPaths, showFlightPaths]);
 
   // Update Cesium Agent flight paths (from LLM Agent) - Now handled by mergedFlightPaths
   const updateCesiumAgentPaths = useCallback(() => {
@@ -848,6 +948,8 @@ export default function DualModeMap() {
       } catch (err) { /* ignore */ }
     });
     agentPathEntitiesRef.current = [];
+
+    if (!showFlightPaths) return;
 
     // Add agent flight paths
     agentFlightPaths.forEach((agentPath) => {
@@ -931,17 +1033,107 @@ export default function DualModeMap() {
         console.warn('Error adding agent path entity:', err);
       }
     });
-  }, [agentFlightPaths]);
+  }, [agentFlightPaths, showFlightPaths]);
+
+  const updateCesiumRecordedFlightPaths = useCallback(() => {
+    if (!viewerRef.current || !cesiumRef.current) return;
+    const viewer = viewerRef.current;
+    const Cesium = cesiumRef.current;
+
+    if (viewer.isDestroyed()) return;
+
+    recordedFlightEntitiesRef.current.forEach((entity) => {
+      try {
+        if (viewer.entities.contains(entity)) {
+          viewer.entities.remove(entity);
+        }
+      } catch (err) { /* ignore */ }
+    });
+    recordedFlightEntitiesRef.current = [];
+
+    if (!showFlightPaths) return;
+
+    RECORDED_FLIGHT_PATHS.forEach((path) => {
+      try {
+        const pathColor = Cesium.Color.fromCssColorString(path.color);
+        const positions = path.points.flatMap((point) => [point.lng, point.lat, point.altitude]);
+
+        const lineEntity = viewer.entities.add({
+          id: `recorded-path-${path.id}`,
+          polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+            width: 3,
+            material: new Cesium.PolylineDashMaterialProperty({
+              color: pathColor.withAlpha(0.95),
+              dashLength: 14,
+            }),
+            clampToGround: false,
+          },
+        });
+        recordedFlightEntitiesRef.current.push(lineEntity);
+
+        const startPoint = path.points[0];
+        const endPoint = path.points[path.points.length - 1];
+        const centerPoint = path.points[Math.floor(path.points.length / 2)] ?? startPoint;
+        if (!startPoint || !endPoint || !centerPoint) return;
+
+        const startEntity = viewer.entities.add({
+          id: `recorded-start-${path.id}`,
+          position: Cesium.Cartesian3.fromDegrees(startPoint.lng, startPoint.lat, startPoint.altitude),
+          point: {
+            pixelSize: 12,
+            color: pathColor,
+            outlineColor: Cesium.Color.WHITE,
+            outlineWidth: 3,
+          },
+        });
+        recordedFlightEntitiesRef.current.push(startEntity);
+
+        const endEntity = viewer.entities.add({
+          id: `recorded-end-${path.id}`,
+          position: Cesium.Cartesian3.fromDegrees(endPoint.lng, endPoint.lat, endPoint.altitude),
+          point: {
+            pixelSize: 11,
+            color: Cesium.Color.WHITE,
+            outlineColor: pathColor,
+            outlineWidth: 3,
+          },
+        });
+        recordedFlightEntitiesRef.current.push(endEntity);
+
+        const labelEntity = viewer.entities.add({
+          id: `recorded-label-${path.id}`,
+          position: Cesium.Cartesian3.fromDegrees(centerPoint.lng, centerPoint.lat, centerPoint.altitude + 18),
+          label: {
+            text: `${path.id} • ${path.pointCount} pts`,
+            font: 'bold 12px sans-serif',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: pathColor,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            showBackground: true,
+            backgroundColor: Cesium.Color.BLACK.withAlpha(0.72),
+            backgroundPadding: new Cesium.Cartesian2(8, 4),
+            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
+        recordedFlightEntitiesRef.current.push(labelEntity);
+      } catch (err) {
+        console.warn('Error adding recorded flight path:', err);
+      }
+    });
+  }, [showFlightPaths]);
 
   useEffect(() => {
-    if (is3DMode && mounted && !cesiumLoaded && !cesiumInitializing) {
+    if (is3DMode && active3DEngine === 'cesium' && mounted && !cesiumLoaded && !cesiumInitializing) {
       initCesium();
     }
-  }, [is3DMode, mounted, cesiumLoaded, cesiumInitializing, initCesium]);
+  }, [is3DMode, active3DEngine, mounted, cesiumLoaded, cesiumInitializing, initCesium]);
 
   // Destroy Cesium when switching to 2D mode
   useEffect(() => {
-    if (!is3DMode && cesiumLoaded) {
+    if ((!is3DMode || active3DEngine !== 'cesium') && cesiumLoaded) {
       // Clean up Cesium when switching to 2D
       if (clickHandlerRef.current) {
         clickHandlerRef.current.destroy();
@@ -954,24 +1146,32 @@ export default function DualModeMap() {
       flightPathEntitiesRef.current = [];
       waypointEntitiesRef.current = [];
       agentPathEntitiesRef.current = [];
+      recordedFlightEntitiesRef.current = [];
+      testpointEntitiesRef.current = [];
       setCesiumLoaded(false);
       setCesiumInitializing(false);
     }
-  }, [is3DMode, cesiumLoaded]);
+  }, [is3DMode, active3DEngine, cesiumLoaded]);
 
   // Update 3D flight paths when flightPaths change or when switching to 3D mode
   useEffect(() => {
-    if (is3DMode && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
+    if (is3DMode && active3DEngine === 'cesium' && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
       updateCesiumFlightPaths();
     }
-  }, [is3DMode, cesiumLoaded, mergedFlightPaths, updateCesiumFlightPaths]);
+  }, [is3DMode, active3DEngine, cesiumLoaded, mergedFlightPaths, updateCesiumFlightPaths]);
 
   // Update 3D Agent flight paths when agentFlightPaths change
   useEffect(() => {
-    if (is3DMode && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
+    if (is3DMode && active3DEngine === 'cesium' && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
       updateCesiumAgentPaths();
     }
-  }, [is3DMode, cesiumLoaded, agentFlightPaths, updateCesiumAgentPaths]);
+  }, [is3DMode, active3DEngine, cesiumLoaded, agentFlightPaths, updateCesiumAgentPaths]);
+
+  useEffect(() => {
+    if (is3DMode && active3DEngine === 'cesium' && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
+      updateCesiumRecordedFlightPaths();
+    }
+  }, [is3DMode, active3DEngine, cesiumLoaded, showFlightPaths, updateCesiumRecordedFlightPaths]);
 
   // Update 3D Testpoint markers
   const updateCesiumTestpoints = useCallback(() => {
@@ -998,8 +1198,8 @@ export default function DualModeMap() {
       
       try {
         const isSelected = selectedTestpointId === tp.id;
-        const currentTemp = getCurrentValue(tp.id, 'temperature') ?? tp.current_values?.temperature;
-        const currentRH = getCurrentValue(tp.id, 'humidity') ?? tp.current_values?.relative_humidity;
+        const currentTemp = getDisplayTemperature(tp);
+        const currentRH = getDisplayHumidity(tp);
         
         // Get device color
         const deviceColors: Record<string, string> = {
@@ -1111,10 +1311,10 @@ export default function DualModeMap() {
 
   // Update testpoints in 3D when data changes
   useEffect(() => {
-    if (is3DMode && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
+    if (is3DMode && active3DEngine === 'cesium' && cesiumLoaded && viewerRef.current && !viewerRef.current.isDestroyed()) {
       updateCesiumTestpoints();
     }
-  }, [is3DMode, cesiumLoaded, testpoints, selectedTestpointId, showTestpoints, updateCesiumTestpoints]);
+  }, [is3DMode, active3DEngine, cesiumLoaded, testpoints, selectedTestpointId, showTestpoints, updateCesiumTestpoints]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -1171,105 +1371,222 @@ export default function DualModeMap() {
     }
   };
 
+  const glassControlPanelClass = 'rounded-2xl border border-white/10 bg-black/55 p-1 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.5)]';
+  const controlButtonBaseClass = 'relative flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-[10px] font-medium transition-all duration-200';
+  const inactiveControlButtonClass = 'border-white/8 bg-white/6 text-slate-300 hover:border-white/15 hover:bg-white/10';
+
+  const getSegmentButtonClass = (active: boolean, activeClasses: string) =>
+    `${controlButtonBaseClass} ${active ? `${activeClasses} shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]` : inactiveControlButtonClass}`;
+
+  const getIconButtonClass = (active: boolean, activeClasses: string) =>
+    `h-8 w-8 ${controlButtonBaseClass} ${active ? activeClasses : inactiveControlButtonClass}`;
+  const active2DLayerConfig = MAP_LAYER_CONFIG[active2DLayer];
+  const available2DLayers = Object.values(MAP_LAYER_CONFIG);
+
+  // NDVI time-series playback
+  useEffect(() => {
+    if (ndviPlaying && active2DLayer === 'ndvi') {
+      ndviTimerRef.current = setInterval(() => {
+        setNdviHourIndex((prev) => (prev + 1) % NDVI_HOURS.length);
+      }, 1200);
+    }
+    return () => {
+      if (ndviTimerRef.current) clearInterval(ndviTimerRef.current);
+    };
+  }, [ndviPlaying, active2DLayer]);
+
+  // Resolve current 2D image src: for NDVI use the time-specific image
+  const resolved2DLayerSrc = useMemo(() => {
+    if (active2DLayer === 'ndvi') return NDVI_HOURS[ndviHourIndex].src;
+    return active2DLayerConfig.src;
+  }, [active2DLayer, ndviHourIndex, active2DLayerConfig.src]);
+
+  function getDisplayTemperature(tp: { id: number; current_values: Record<string, number> }) {
+    return (
+      getCurrentValue(tp.id, 'temperature') ??
+      getCurrentValue(tp.id, 'air_temperature') ??
+      getCurrentValue(tp.id, 'globe_temperature') ??
+      getCurrentValue(tp.id, 'surface_temperature') ??
+      tp.current_values?.temperature ??
+      tp.current_values?.air_temperature ??
+      tp.current_values?.globe_temperature ??
+      tp.current_values?.surface_temperature ??
+      null
+    );
+  }
+
+  function getDisplayHumidity(tp: { id: number; current_values: Record<string, number> }) {
+    return (
+      getCurrentValue(tp.id, 'humidity') ??
+      tp.current_values?.humidity ??
+      null
+    );
+  }
+
   return (
     <div className="card-glass h-full flex flex-col overflow-hidden relative">
       {/* Header Info */}
-      <div className="absolute top-3 left-3 z-20">
-        <motion.div className="bg-black/85 backdrop-blur-xl rounded-xl border border-slate-700/60 p-2.5 shadow-2xl" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-          <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-700/50">
+      <div className="absolute top-2 left-2 z-30">
+        <motion.div className="bg-black/90 backdrop-blur-xl rounded-xl border border-slate-700/60 p-2 shadow-2xl max-w-[170px]" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <div className="flex items-center gap-1.5 mb-1.5 pb-1 border-b border-slate-700/50">
             <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
             <Thermometer className="w-3 h-3 text-cyan-400" />
-            <span className="text-cyan-400 text-[10px] font-semibold">Thermal Imaging</span>
+            <span className="text-cyan-400 text-[9px] font-semibold">{is3DMode ? 'Thermal' : active2DLayerConfig.shortLabel}</span>
           </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px]">
             <div>
-              <div className="text-[8px] text-slate-500 uppercase">Temp</div>
-              <div className={`text-sm font-bold font-mono ${currentTemp > 40 ? 'text-red-400' : 'text-orange-400'}`} suppressHydrationWarning>{mounted ? currentTemp.toFixed(1) : '--'}°C</div>
+              <div className="text-[7px] text-slate-500 uppercase">Temp</div>
+              <div className={`text-xs font-bold font-mono ${currentTemp > 40 ? 'text-red-400' : 'text-orange-400'}`} suppressHydrationWarning>{mounted ? currentTemp.toFixed(1) : '--'}°C</div>
             </div>
             <div>
-              <div className="text-[8px] text-slate-500 uppercase">Alt</div>
-              <div className="text-sm font-bold font-mono text-cyan-400" suppressHydrationWarning>{mounted ? altitude.toFixed(0) : '--'}m</div>
+              <div className="text-[7px] text-slate-500 uppercase">Alt</div>
+              <div className="text-xs font-bold font-mono text-cyan-400" suppressHydrationWarning>{mounted ? altitude.toFixed(0) : '--'}m</div>
             </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <MapPin className="w-2.5 h-2.5 text-green-500" />
-              <span className="font-mono text-[9px]">{coordinates.lat.toFixed(4)}°N</span>
+            <div className="flex items-center gap-0.5 text-slate-400">
+              <MapPin className="w-2 h-2 text-green-500" />
+              <span className="font-mono text-[8px]">{coordinates.lat.toFixed(4)}°N</span>
             </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <Navigation className="w-2.5 h-2.5 text-green-500" />
-              <span className="font-mono text-[9px]">{coordinates.lng.toFixed(4)}°E</span>
+            <div className="flex items-center gap-0.5 text-slate-400">
+              <Navigation className="w-2 h-2 text-green-500" />
+              <span className="font-mono text-[8px]">{coordinates.lng.toFixed(4)}°E</span>
             </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <Gauge className="w-2.5 h-2.5" />
-              <span suppressHydrationWarning>{mounted ? speed.toFixed(1) : '-'}m/s</span>
+            <div className="flex items-center gap-0.5 text-slate-400">
+              <Gauge className="w-2 h-2" />
+              <span className="text-[8px]" suppressHydrationWarning>{mounted ? speed.toFixed(1) : '-'}m/s</span>
             </div>
-            <div className="flex items-center gap-1 text-slate-400">
-              <Wind className="w-2.5 h-2.5" />
-              <span>{windSpeed}m/s</span>
+            <div className="flex items-center gap-0.5 text-slate-400">
+              <Wind className="w-2 h-2" />
+              <span className="text-[8px]">{windSpeed}m/s</span>
             </div>
           </div>
         </motion.div>
       </div>
 
       {/* Right Controls */}
-      <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
-        <div className="bg-black/80 backdrop-blur-xl rounded-lg border border-slate-700/60 p-1 flex flex-col gap-0.5">
-          <motion.button className={`p-1.5 rounded transition-all ${is3DMode ? 'bg-cyan-500/30 border border-cyan-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setIs3DMode(!is3DMode)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            {is3DMode ? <Globe className="w-3.5 h-3.5 text-cyan-400" /> : <Map className="w-3.5 h-3.5 text-slate-400" />}
-          </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${showThermalOverlay ? 'bg-orange-500/30 border border-orange-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowThermalOverlay(!showThermalOverlay)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Layers className="w-3.5 h-3.5 text-orange-400" />
-          </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${showFlightPaths ? 'bg-blue-500/30 border border-blue-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowFlightPaths(!showFlightPaths)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Route className="w-3.5 h-3.5 text-blue-400" />
-          </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${showHeatZones ? 'bg-red-500/30 border border-red-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowHeatZones(!showHeatZones)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Heat Zones">
-            {showHeatZones ? <Eye className="w-3.5 h-3.5 text-red-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
-          </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${showTestpoints ? 'bg-green-500/30 border border-green-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setShowTestpoints(!showTestpoints)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Monitoring Stations">
-            <Radio className={`w-3.5 h-3.5 ${showTestpoints ? 'text-green-400' : 'text-slate-400'}`} />
-          </motion.button>
-        </div>
+      <div className="absolute top-2 right-2 z-30 flex flex-col gap-1.5">
+        <div className={glassControlPanelClass}>
+          <div className="grid grid-cols-2 gap-1">
+            <motion.button
+              className={getSegmentButtonClass(!is3DMode, 'border-cyan-400/60 bg-cyan-500/20 text-white')}
+              onClick={() => setIs3DMode(false)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Map className="w-3.5 h-3.5" />
+              <span>2D</span>
+            </motion.button>
+            <motion.button
+              className={getSegmentButtonClass(is3DMode, 'border-cyan-400/60 bg-cyan-500/20 text-white')}
+              onClick={() => setIs3DMode(true)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Move3d className="w-3.5 h-3.5" />
+              <span>3D</span>
+            </motion.button>
+          </div>
 
-        <div className="bg-black/80 backdrop-blur-xl rounded-lg border border-slate-700/60 p-1 flex flex-col gap-0.5">
-          <motion.button className={`p-1.5 rounded transition-all ${planningMode ? 'bg-cyan-500/30 border border-cyan-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => { const newMode = !planningMode; setPlanningMode(newMode); setShowPlanningPanel(newMode); if (!newMode) { setWaypoints([]); setSelectedUAV(null); clearWaypointEntities(); } }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <MousePointer className="w-3.5 h-3.5 text-cyan-400" />
-          </motion.button>
-          <motion.button className={`p-1.5 rounded transition-all ${isFlying ? 'bg-green-500/30 border border-green-500' : 'bg-slate-800/80 border border-slate-700'}`} onClick={() => setIsFlying(!isFlying)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            {isFlying ? <Pause className="w-3.5 h-3.5 text-green-400" /> : <Play className="w-3.5 h-3.5 text-slate-400" />}
-          </motion.button>
-          <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
-          </motion.button>
-        </div>
-
-        {/* 3D Camera Controls */}
-        {is3DMode && cesiumLoaded && (
-          <motion.div className="bg-black/80 backdrop-blur-xl rounded-lg border border-slate-700/60 p-1 flex flex-col gap-0.5" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
-            <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={() => adjustCameraHeight(-200)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Zoom In">
-              <ZoomIn className="w-3.5 h-3.5 text-cyan-400" />
-            </motion.button>
-            <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={() => adjustCameraHeight(200)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Zoom Out">
-              <ZoomOut className="w-3.5 h-3.5 text-cyan-400" />
-            </motion.button>
-            <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={() => adjustCameraPitch(10)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Tilt Up">
-              <ChevronUp className="w-3.5 h-3.5 text-cyan-400" />
-            </motion.button>
-            <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={() => adjustCameraPitch(-10)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Tilt Down">
-              <ChevronDown className="w-3.5 h-3.5 text-cyan-400" />
-            </motion.button>
-            <motion.button className="p-1.5 rounded bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50" onClick={resetCamera} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} title="Reset View">
-              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-            </motion.button>
-            {/* Focus on Campus Model Button */}
-            {modelLoaded && (
-              <motion.button 
-                className="p-1.5 rounded bg-cyan-500/20 border border-cyan-500/50 hover:bg-cyan-500/30" 
-                onClick={focusOnCampusModel} 
-                whileHover={{ scale: 1.05 }} 
-                whileTap={{ scale: 0.95 }} 
-                title="Focus on CUHK Campus"
+          {is3DMode && (
+            <div className="mt-1 grid grid-cols-2 gap-1">
+              <motion.button
+                className={getSegmentButtonClass(active3DEngine === 'three', 'border-violet-400/60 bg-violet-500/20 text-white')}
+                onClick={() => setActive3DEngine('three')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Building2 className="w-3.5 h-3.5 text-cyan-400" />
+                <Globe className="w-3.5 h-3.5" />
+                <span>Three</span>
+              </motion.button>
+              <motion.button
+                className={getSegmentButtonClass(active3DEngine === 'cesium', 'border-sky-400/60 bg-sky-500/20 text-white')}
+                onClick={() => setActive3DEngine('cesium')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Cesium</span>
+              </motion.button>
+            </div>
+          )}
+        </div>
+
+        {!is3DMode && (
+          <div className={glassControlPanelClass}>
+            <div className="mb-0.5 px-1 text-[8px] font-medium uppercase tracking-[0.18em] text-slate-400">Layer</div>
+            <div className="grid grid-cols-3 gap-0.5">
+              {available2DLayers.map((layer) => {
+                const Icon = layer.icon;
+                const isActive = active2DLayer === layer.id;
+                const isDisabled = !layer.available;
+
+                return (
+                  <motion.button
+                    key={layer.id}
+                    className={`${getSegmentButtonClass(isActive, layer.accentClasses)} ${isDisabled ? 'cursor-not-allowed opacity-45 hover:bg-slate-950/35' : ''}`}
+                    onClick={() => {
+                      if (!isDisabled) setActive2DLayer(layer.id);
+                    }}
+                    whileHover={isDisabled ? undefined : { scale: 1.02 }}
+                    whileTap={isDisabled ? undefined : { scale: 0.98 }}
+                    title={isDisabled ? `${layer.label} will be available after the NDVI asset is added` : layer.description}
+                    disabled={isDisabled}
+                  >
+                    <Icon className="w-3 h-3" />
+                    <span>{layer.shortLabel}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className={`${glassControlPanelClass} grid grid-cols-4 gap-0.5`}>
+          <motion.button className={getIconButtonClass(true, 'border-violet-400/60 bg-violet-500/20 text-violet-100')} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title={`Active Layer: ${active2DLayerConfig.label}`}>
+            <Layers className="w-3.5 h-3.5" />
+          </motion.button>
+          <motion.button className={getIconButtonClass(showFlightPaths, 'border-blue-400/60 bg-blue-500/20 text-blue-100')} onClick={() => setShowFlightPaths(!showFlightPaths)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Flight Paths">
+            <Route className="w-3.5 h-3.5" />
+          </motion.button>
+          <motion.button className={getIconButtonClass(showHeatZones, 'border-red-400/60 bg-red-500/20 text-red-100')} onClick={() => setShowHeatZones(!showHeatZones)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Heat Zones">
+            {showHeatZones ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+          </motion.button>
+          <motion.button className={getIconButtonClass(showTestpoints, 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100')} onClick={() => setShowTestpoints(!showTestpoints)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Monitoring Stations">
+            <Radio className="w-3.5 h-3.5" />
+          </motion.button>
+        </div>
+
+        <div className={`${glassControlPanelClass} grid grid-cols-3 gap-0.5`}>
+          <motion.button className={getIconButtonClass(planningMode, 'border-cyan-400/60 bg-cyan-500/20 text-cyan-100')} onClick={() => { const newMode = !planningMode; setPlanningMode(newMode); setShowPlanningPanel(newMode); if (!newMode) { setWaypoints([]); setSelectedUAV(null); clearWaypointEntities(); } }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Route Planning">
+            <MousePointer className="w-3.5 h-3.5" />
+          </motion.button>
+          <motion.button className={getIconButtonClass(isFlying, 'border-emerald-400/60 bg-emerald-500/20 text-emerald-100')} onClick={() => setIsFlying(!isFlying)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title={isFlying ? 'Pause Animation' : 'Resume Animation'}>
+            {isFlying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+          </motion.button>
+          <motion.button className={getIconButtonClass(false, 'border-slate-400/60 bg-slate-500/20 text-white')} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Fullscreen">
+            <Maximize2 className="w-3.5 h-3.5" />
+          </motion.button>
+        </div>
+
+        {is3DMode && active3DEngine === 'cesium' && cesiumLoaded && (
+          <motion.div className={`${glassControlPanelClass} grid grid-cols-3 gap-0.5`} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
+            <motion.button className={getIconButtonClass(true, 'border-cyan-400/60 bg-cyan-500/20 text-white')} onClick={() => adjustCameraHeight(-200)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Zoom In">
+              <ZoomIn className="w-3.5 h-3.5" />
+            </motion.button>
+            <motion.button className={getIconButtonClass(true, 'border-cyan-400/60 bg-cyan-500/20 text-white')} onClick={() => adjustCameraHeight(200)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Zoom Out">
+              <ZoomOut className="w-3.5 h-3.5" />
+            </motion.button>
+            <motion.button className={getIconButtonClass(true, 'border-cyan-400/60 bg-cyan-500/20 text-white')} onClick={resetCamera} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Reset View">
+              <RotateCcw className="w-3.5 h-3.5" />
+            </motion.button>
+            <motion.button className={getIconButtonClass(true, 'border-cyan-400/60 bg-cyan-500/20 text-white')} onClick={() => adjustCameraPitch(10)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Tilt Up">
+              <ChevronUp className="w-3.5 h-3.5" />
+            </motion.button>
+            <motion.button className={getIconButtonClass(true, 'border-cyan-400/60 bg-cyan-500/20 text-white')} onClick={() => adjustCameraPitch(-10)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Tilt Down">
+              <ChevronDown className="w-3.5 h-3.5" />
+            </motion.button>
+            {modelLoaded && (
+              <motion.button className={getIconButtonClass(true, 'border-sky-400/60 bg-sky-500/20 text-white')} onClick={focusOnCampusModel} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} title="Focus Campus Model">
+                <Building2 className="w-3.5 h-3.5" />
               </motion.button>
             )}
           </motion.div>
@@ -1332,7 +1649,7 @@ export default function DualModeMap() {
                   <div className="max-h-32 overflow-y-auto space-y-1 mb-2 pr-1">
                     {waypoints.map((wp, i) => (
                       <div key={wp.id} className="flex items-center gap-2 text-[10px] bg-slate-800/80 rounded-lg px-2 py-1.5">
-                        <span className="w-4 h-4 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[9px] font-bold flex-shrink-0">{i + 1}</span>
+                        <span className="w-4 h-4 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[9px] font-bold shrink-0">{i + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className="text-slate-300 font-mono text-[9px] truncate">
                             {wp.lng ? `${wp.lat?.toFixed(4)}°N, ${wp.lng?.toFixed(4)}°E` : `${wp.x.toFixed(0)}%, ${wp.y.toFixed(0)}%`}
@@ -1354,7 +1671,7 @@ export default function DualModeMap() {
                             <ArrowUp className="w-2.5 h-2.5" />
                           </button>
                         </div>
-                        <button className="text-red-400 hover:text-red-300 flex-shrink-0" onClick={() => removeWaypoint(wp.id)}><Trash2 className="w-3 h-3" /></button>
+                        <button className="text-red-400 hover:text-red-300 shrink-0" onClick={() => removeWaypoint(wp.id)}><Trash2 className="w-3 h-3" /></button>
                       </div>
                     ))}
                   </div>
@@ -1383,8 +1700,13 @@ export default function DualModeMap() {
           {!is3DMode && (
             <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div ref={mapContainerRef} className="absolute inset-0" onClick={handleMapClick} style={{ cursor: planningMode && selectedUAV ? 'crosshair' : 'default' }}>
-                <Image src={showThermalOverlay ? "/heatmap.png" : "/rgb.png"} alt="Map" fill className="object-cover pointer-events-none" priority />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
+                {active2DLayer === 'ndvi' ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={resolved2DLayerSrc} alt={`${active2DLayerConfig.label} map`} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                ) : (
+                  <Image src={resolved2DLayerSrc} alt={`${active2DLayerConfig.label} map`} fill className="object-cover pointer-events-none" priority />
+                )}
+                <div className="absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
               </div>
 
               {showHeatZones && heatZones.map((zone) => {
@@ -1400,7 +1722,7 @@ export default function DualModeMap() {
                   >
                     {/* Quick tooltip on hover */}
                     {hoveredZone === zone.id && !planningMode && selectedZone !== zone.id && (
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/95 px-2 py-1 rounded text-[9px] whitespace-nowrap border border-slate-600 z-30">
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/95 px-2 py-1 rounded text-[9px] whitespace-nowrap border border-slate-600 z-20">
                         <span className="text-white font-medium">{zone.name}</span>
                         <span className="text-slate-400 ml-2">{zone.temp}°C</span>
                       </div>
@@ -1414,8 +1736,8 @@ export default function DualModeMap() {
                 const pos = geoToPercent(tp.lng, tp.lat);
                 const isSelected = selectedTestpointId === tp.id;
                 const isHovered = hoveredTestpoint === tp.id;
-                const currentTemp = getCurrentValue(tp.id, 'temperature') ?? tp.current_values?.temperature;
-                const currentRH = getCurrentValue(tp.id, 'humidity') ?? tp.current_values?.relative_humidity;
+                const currentTemp = getDisplayTemperature(tp);
+                const currentRH = getDisplayHumidity(tp);
                 
                 const deviceColors: Record<string, string> = {
                   'HOBO MX': '#3b82f6',
@@ -1428,7 +1750,7 @@ export default function DualModeMap() {
                 return (
                   <div
                     key={`testpoint-${tp.id}`}
-                    className="absolute z-20 cursor-pointer"
+                    className="absolute z-10 cursor-pointer"
                     style={{ 
                       left: `${pos.x}%`, 
                       top: `${pos.y}%`, 
@@ -1474,7 +1796,7 @@ export default function DualModeMap() {
                     {/* Tooltip on hover/select */}
                     {(isHovered || isSelected) && !planningMode && (
                       <motion.div 
-                        className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/95 backdrop-blur-sm px-3 py-2 rounded-lg border-2 whitespace-nowrap z-30"
+                        className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/95 backdrop-blur-sm px-3 py-2 rounded-lg border-2 whitespace-nowrap z-20"
                         style={{ borderColor: color }}
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1505,7 +1827,7 @@ export default function DualModeMap() {
               <AnimatePresence>
                 {selectedZone && !planningMode && (
                   <motion.div 
-                    className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 bg-black/95 backdrop-blur-xl rounded-xl border border-slate-600 p-3 min-w-[280px] shadow-2xl"
+                    className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 bg-black/95 backdrop-blur-xl rounded-xl border border-slate-600 p-3 min-w-[280px] shadow-2xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
@@ -1563,6 +1885,23 @@ export default function DualModeMap() {
                       <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ef4444" /></marker>
                       <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#22c55e" /></marker>
                     </defs>
+                    {recordedFlightOverlayPaths.map((path) => {
+                      const pathPoints = path.percentPoints.map((point) => `${point.x},${point.y}`).join(' ');
+                      return (
+                        <g key={`recorded-path-${path.id}`}>
+                          <polyline
+                            points={pathPoints}
+                            fill="none"
+                            stroke={path.color}
+                            strokeWidth="0.42"
+                            strokeDasharray="0.7,0.45"
+                            opacity="0.95"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                      );
+                    })}
                     {mergedFlightPaths.map((path) => {
                       const pathPoints = path.points.map(p => `${p.x},${p.y}`).join(' ');
                       const markerEnd = path.type === 'coarse' ? 'url(#arrowBlue)' : path.type === 'fine' ? 'url(#arrowRed)' : 'url(#arrowGreen)';
@@ -1591,7 +1930,39 @@ export default function DualModeMap() {
                   </svg>
 
                   {/* HTML overlay for perfect circles and text */}
-                  <div className="absolute inset-0 w-full h-full pointer-events-none z-20">
+                  <div className="absolute inset-0 w-full h-full pointer-events-none z-[8]">
+                    {recordedFlightOverlayPaths.map((path) => {
+                      const start = path.percentPoints[0];
+                      const end = path.percentPoints[path.percentPoints.length - 1];
+                      const labelPoint = path.percentPoints[Math.floor(path.percentPoints.length / 2)] ?? start;
+                      if (!start || !end || !labelPoint) return null;
+
+                      return (
+                        <div key={`recorded-markers-${path.id}`}>
+                          <div
+                            className="absolute -translate-x-1/2 -translate-y-1/2"
+                            style={{ left: `${start.x}%`, top: `${start.y}%` }}
+                          >
+                            <div className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: path.color }} />
+                          </div>
+                          <div
+                            className="absolute -translate-x-1/2 -translate-y-1/2"
+                            style={{ left: `${end.x}%`, top: `${end.y}%` }}
+                          >
+                            <div className="w-3.5 h-3.5 rotate-45 border-2 border-white shadow-md" style={{ backgroundColor: path.color }} />
+                          </div>
+                          <div
+                            className="absolute z-10 -translate-x-1/2 -translate-y-[140%]"
+                            style={{ left: `${labelPoint.x}%`, top: `${labelPoint.y}%` }}
+                          >
+                            <div className="rounded-full border border-white/20 bg-black/70 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-md">
+                              {path.id} • {path.pointCount} pts
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
                     {mergedFlightPaths.map((path) => {
                       const pos = getAnimatedPosition(path);
                       const isAgent = (path as any).isAgentGenerated;
@@ -1624,7 +1995,7 @@ export default function DualModeMap() {
                             style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
                           >
                             <div 
-                              className="w-5 h-5 rounded-full border-[2px] border-white shadow-md relative flex items-center justify-center"
+                              className="w-5 h-5 rounded-full border-2 border-white shadow-md relative flex items-center justify-center"
                               style={{ backgroundColor: path.color }}
                             >
                               <div 
@@ -1667,7 +2038,7 @@ export default function DualModeMap() {
                 const pos = getAnimatedPosition(path);
                 const isAgent = (path as any).isAgentGenerated;
                 return (
-                  <div key={`label-${path.id}`} className="absolute z-20 pointer-events-none" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -160%)' }}>
+                  <div key={`label-${path.id}`} className="absolute z-10 pointer-events-none" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -160%)' }}>
                     <div className={`px-1.5 py-0.5 rounded text-[10px] font-bold border flex items-center gap-1 ${isAgent ? 'bg-purple-500/90 border-purple-400 text-white' : ''}`} style={!isAgent ? { backgroundColor: 'rgba(0,0,0,0.85)', borderColor: path.color, color: path.color } : {}}>
                       {isAgent && <Wand2 className="w-3 h-3" />}
                       {path.label}
@@ -1679,7 +2050,7 @@ export default function DualModeMap() {
 
               <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
                 <div className="bg-black/80 px-3 py-1 rounded-full border border-slate-600 text-[10px] text-slate-200">
-                  2D {showThermalOverlay ? 'Thermal' : 'RGB'}{planningMode && selectedUAV && <span className="text-cyan-400 ml-1.5">• Click to add</span>}
+                  2D {active2DLayerConfig.label}{active2DLayer === 'ndvi' ? ` ${NDVI_HOURS[ndviHourIndex].label}` : ''} • M3M/M3T Tracks{planningMode && selectedUAV && <span className="text-cyan-400 ml-1.5">• Click to add</span>}
                 </div>
               </div>
 
@@ -1716,103 +2087,174 @@ export default function DualModeMap() {
                 </svg>
               </div>
 
+              {/* NDVI Time-Series Slider */}
+              <AnimatePresence>
+                {active2DLayer === 'ndvi' && (
+                  <motion.div
+                    className="absolute bottom-3 left-1/2 -translate-x-1/2 z-15 pointer-events-auto"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="flex items-center gap-2 bg-black/85 backdrop-blur-xl rounded-2xl border border-emerald-500/30 px-3 py-2 shadow-2xl">
+                      {/* Play / Pause */}
+                      <button
+                        className={`flex items-center justify-center w-8 h-8 rounded-full transition-colors ${
+                          ndviPlaying
+                            ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/50'
+                            : 'bg-slate-700/60 text-slate-300 border border-slate-600 hover:bg-slate-600/60'
+                        }`}
+                        onClick={() => setNdviPlaying((p) => !p)}
+                        title={ndviPlaying ? 'Pause' : 'Play time-lapse'}
+                      >
+                        {ndviPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+                      </button>
+
+                      {/* Hour dots */}
+                      <div className="flex items-center gap-0.5">
+                        {NDVI_HOURS.map((h, i) => (
+                          <button
+                            key={h.key}
+                            className="group relative flex flex-col items-center"
+                            onClick={() => { setNdviHourIndex(i); setNdviPlaying(false); }}
+                            title={h.label}
+                          >
+                            <div
+                              className={`w-6 h-1.5 rounded-full transition-all duration-200 ${
+                                i === ndviHourIndex
+                                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                                  : i < ndviHourIndex
+                                    ? 'bg-emerald-600/50 group-hover:bg-emerald-500/70'
+                                    : 'bg-slate-600/70 group-hover:bg-slate-500/70'
+                              }`}
+                            />
+                            <span className={`text-[7px] mt-0.5 transition-colors ${
+                              i === ndviHourIndex ? 'text-emerald-300 font-semibold' : 'text-slate-500 group-hover:text-slate-400'
+                            }`}>
+                              {h.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Current time badge */}
+                      <div className="flex items-center gap-1 bg-emerald-500/20 border border-emerald-400/40 rounded-lg px-2 py-1 ml-1">
+                        <Clock className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[10px] text-emerald-200 font-mono font-semibold">
+                          {NDVI_HOURS[ndviHourIndex].label}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Mini Map with current view indicator */}
               <div className="absolute bottom-3 right-3 w-28 h-20 rounded-lg overflow-hidden border border-slate-600 z-10 bg-black/50">
-                <Image src="/heatmap.png" alt="Mini" fill className="object-cover opacity-60" />
+                {active2DLayer === 'ndvi' ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={resolved2DLayerSrc} alt={`${active2DLayerConfig.label} overview`} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                ) : (
+                  <Image src={resolved2DLayerSrc} alt={`${active2DLayerConfig.label} overview`} fill className="object-cover opacity-60" />
+                )}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-6 border-2 border-cyan-400 bg-cyan-400/20 rounded-sm" />
                 </div>
-                <div className="absolute bottom-0.5 left-0.5 text-[7px] text-white bg-black/60 px-1 rounded">Overview</div>
+                <div className="absolute bottom-0.5 left-0.5 text-[7px] text-white bg-black/60 px-1 rounded">{active2DLayerConfig.shortLabel}</div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* 3D View */}
-        <AnimatePresence>
-          {is3DMode && (
-            <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {!cesiumLoaded && !cesiumError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-30">
-                  <div className="text-center">
-                    <motion.div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full mx-auto mb-3" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
-                    <p className="text-slate-300 text-xs">Loading 3D Globe...</p>
-                  </div>
-                </div>
-              )}
-              {cesiumError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-30">
-                  <div className="text-center">
-                    <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
-                    <p className="text-slate-300 text-xs">{cesiumError}</p>
-                    <button className="mt-2 px-3 py-1.5 bg-cyan-500 text-white rounded text-xs" onClick={() => { setCesiumError(null); setCesiumLoaded(false); setCesiumInitializing(false); }}>Retry</button>
-                  </div>
-                </div>
-              )}
-              <div ref={cesiumContainerRef} className="absolute inset-0" style={{ cursor: planningMode && selectedUAV ? 'crosshair' : 'default' }} />
-              {cesiumLoaded && (
-                <>
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-                    <div className="bg-black/80 px-3 py-1 rounded-full border border-slate-600 text-[10px] text-slate-200">
-                      3D Globe • {cameraHeight.toFixed(0)}m{planningMode && selectedUAV && <span className="text-cyan-400 ml-1.5">• Click to add</span>}
-                    </div>
-                  </div>
-                  {/* Model Loading Status */}
-                  {modelLoading && (
-                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                      <div className="bg-cyan-500/20 border border-cyan-500/50 px-4 py-2 rounded-lg backdrop-blur-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-cyan-400 text-xs font-medium">Loading CUHK Campus (388MB)...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {modelLoaded && (
-                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20">
-                      <motion.div 
-                        className="bg-green-500/20 border border-green-500/50 px-4 py-2 rounded-lg backdrop-blur-sm flex items-center gap-2"
-                        initial={{ opacity: 1, y: 0 }}
-                        animate={{ opacity: 0, y: -10 }}
-                        transition={{ delay: 5, duration: 1 }}
-                      >
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-green-400 text-xs">CUHK Campus Loaded!</span>
-                        <button 
-                          onClick={focusOnCampusModel}
-                          className="ml-2 px-2 py-0.5 bg-cyan-500 hover:bg-cyan-400 text-white text-xs rounded pointer-events-auto"
-                        >
-                          Focus
-                        </button>
-                      </motion.div>
-                    </div>
-                  )}
-                  <div className="absolute bottom-3 left-3 bg-black/80 rounded-lg border border-slate-700/50 p-2 z-10 pointer-events-none">
-                    <div className="flex items-center gap-2 text-[9px] text-slate-400">
-                      <Move3d className="w-3 h-3 text-cyan-400" />
-                      <span>Height: {cameraHeight}m</span>
-                      <span>|</span>
-                      <span>Pitch: {cameraPitch}°</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {is3DMode && active3DEngine === 'three' && (
+          <div className="absolute inset-0" style={{ width: '100%', height: '100%' }}>
+            <ThreeMap
+              flightPaths={mergedFlightPaths}
+              recordedFlightPaths={RECORDED_FLIGHT_PATHS}
+              showFlightPaths={showFlightPaths}
+              testpoints={testpoints}
+              showTestpoints={showTestpoints}
+              selectedTestpointId={selectedTestpointId}
+              onSelectTestpoint={(id) => setSelectedTestpointId(selectedTestpointId === id ? null : id)}
+              getCurrentValue={getCurrentValue}
+              timeOfDay={timeOfDay}
+            />
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+              <div className="bg-black/80 px-3 py-1 rounded-full border border-slate-600 text-[10px] text-slate-200">
+                3D Scene • Three.js • Real flight tracks
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Temperature Scale */}
+        {is3DMode && active3DEngine === 'cesium' && (
+          <div className="absolute inset-0" style={{ width: '100%', height: '100%' }}>
+            <div ref={cesiumContainerRef} className="absolute inset-0" />
+
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+              <div className="bg-black/80 px-3 py-1 rounded-full border border-slate-600 text-[10px] text-slate-200">
+                3D Scene • Cesium • Real flight tracks
+              </div>
+            </div>
+
+            {modelLoading && (
+              <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+                <div className="rounded-full border border-cyan-400/40 bg-black/75 px-3 py-1 text-[10px] text-cyan-300 backdrop-blur-xl">
+                  Loading Cesium campus model...
+                </div>
+              </div>
+            )}
+
+            {cesiumInitializing && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/35 backdrop-blur-sm">
+                <div className="rounded-2xl border border-white/15 bg-black/70 px-5 py-4 text-center shadow-2xl">
+                  <div className="text-sm font-semibold text-white">Initializing Cesium</div>
+                  <div className="mt-1 text-[11px] text-slate-300">Preparing the 3D campus scene and flight records.</div>
+                </div>
+              </div>
+            )}
+
+            {cesiumError && (
+              <div className="absolute bottom-16 left-1/2 z-20 -translate-x-1/2">
+                <div className="flex items-center gap-2 rounded-2xl border border-red-400/40 bg-red-950/70 px-4 py-2 text-[11px] text-red-100 shadow-xl backdrop-blur-xl">
+                  <AlertCircle className="w-4 h-4 text-red-300" />
+                  <span>{cesiumError}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Active Layer Legend */}
         <div className="absolute bottom-3 left-3 bg-black/80 rounded-lg border border-slate-700/50 p-2 z-10 pointer-events-none">
-          <div className="text-[8px] text-slate-400 mb-1">Temperature (°C)</div>
-          <div className="w-24 h-2 rounded thermal-gradient" />
-          <div className="flex justify-between w-24 text-[7px] text-slate-500 mt-0.5"><span>20</span><span>35</span><span>50+</span></div>
+          {!is3DMode && active2DLayerConfig.legend === 'ndvi' ? (
+            <>
+              <div className="text-[8px] text-slate-400 mb-1">NDVI • {NDVI_HOURS[ndviHourIndex].label}</div>
+              <div className="w-24 h-2 rounded bg-gradient-to-r from-red-500 via-yellow-400 to-emerald-500" />
+              <div className="flex justify-between w-24 text-[7px] text-slate-500 mt-0.5"><span>低</span><span>高</span></div>
+            </>
+          ) : !is3DMode && active2DLayerConfig.legend === 'none' ? (
+            <>
+              <div className="text-[8px] text-slate-400 mb-1">Base Layer</div>
+              <div className="text-[9px] text-slate-200">{active2DLayerConfig.label}</div>
+              <div className="text-[7px] text-slate-500 mt-0.5">True-color campus imagery</div>
+            </>
+          ) : (
+            <>
+              <div className="text-[8px] text-slate-400 mb-1">Temperature (°C)</div>
+              <div className="w-24 h-2 rounded thermal-gradient" />
+              <div className="flex justify-between w-24 text-[7px] text-slate-500 mt-0.5"><span>20</span><span>35</span><span>50+</span></div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Selected Testpoint Dialog */}
       <AnimatePresence>
         {selectedTestpointId && testpoints.find(tp => tp.id === selectedTestpointId) && (
-          <div className="absolute inset-x-0 bottom-0 top-[70px] z-[100] pointer-events-none flex items-start justify-center">
+          <div className="absolute inset-x-0 bottom-0 top-[70px] z-100 pointer-events-none flex items-start justify-center">
             <TestpointDialog
               testpoint={testpoints.find(tp => tp.id === selectedTestpointId)!}
               onClose={() => setSelectedTestpointId(null)}
@@ -1822,7 +2264,7 @@ export default function DualModeMap() {
       </AnimatePresence>
 
       {/* Bottom Bar */}
-      <div className="p-2 border-t border-[#2a3548] flex items-center justify-between bg-gradient-to-r from-[#0a0e1a] to-[#111827]">
+      <div className="p-2 border-t border-[#2a3548] flex items-center justify-between bg-linear-to-r from-[#0a0e1a] to-[#111827]">
         <div className="flex items-center gap-1.5">
           <motion.button className="btn-primary flex items-center gap-1 text-[10px] px-2 py-1.5" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}><Video className="w-3 h-3" />Live</motion.button>
           <motion.button className="btn-secondary flex items-center gap-1 text-[10px] px-2 py-1.5" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}><Camera className="w-3 h-3" />Capture</motion.button>
@@ -1836,6 +2278,9 @@ export default function DualModeMap() {
           <div className="flex items-center gap-0.5"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full" /><span className="text-blue-400">Coarse</span></div>
           <div className="flex items-center gap-0.5"><div className="w-1.5 h-1.5 bg-red-500 rounded-full" /><span className="text-red-400">Fine</span></div>
           <div className="flex items-center gap-0.5"><div className="w-1.5 h-1.5 bg-green-500 rounded-full" /><span className="text-green-400">Standby</span></div>
+          <div className="h-3 w-px bg-slate-700" />
+          <div className="flex items-center gap-0.5"><div className="w-1.5 h-1.5 bg-sky-400 rounded-full" /><span className="text-sky-300">M3M</span></div>
+          <div className="flex items-center gap-0.5"><div className="w-1.5 h-1.5 bg-orange-400 rounded-full" /><span className="text-orange-300">M3T</span></div>
         </div>
       </div>
     </div>

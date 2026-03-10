@@ -44,4 +44,9 @@ next-env.d.ts
 public/*.gltf
 public/*.glb
 public/BatchedCUHK_MainCampus2/
+*.glb
+CUHK-Whole Campus - Clean.glb
+
+# Large/binary data (keep repo light)
+*.xlsx
 README copy.md
