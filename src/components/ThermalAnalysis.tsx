@@ -99,8 +99,8 @@ export default function ThermalAnalysis() {
       </div>
 
       {/* Mini Chart */}
-      <div className="flex-1 px-2 py-1 min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex-1 min-h-0 min-w-0 px-2 py-1">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={120}>
           <AreaChart data={tempData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">

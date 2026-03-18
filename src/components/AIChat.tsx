@@ -60,11 +60,10 @@ export default function AIChat() {
   const checkApiStatus = async () => {
     try {
       const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: 'test' }] }),
+        method: 'GET',
       });
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok && data.available) {
         setApiStatus('online');
         setUseLocalMode(false);
       } else {

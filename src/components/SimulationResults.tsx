@@ -151,7 +151,7 @@ export default function SimulationResults() {
 
   // Chart Configuration
   const renderChart = (fontSize = 9, showGrid = false, showLegend = false) => (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={140}>
       <LineChart data={chartData} margin={{ top: 10, right: showLegend ? 10 : 5, left: -10, bottom: 0 }}>
         {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />}
         <XAxis 
@@ -336,7 +336,7 @@ export default function SimulationResults() {
             {/* Modal Content */}
             <div className="flex-1 p-6 min-h-0 flex gap-6">
               {/* Large Chart */}
-              <div className="flex-1 bg-slate-900/30 rounded-xl border border-slate-800 p-4">
+              <div className="flex-1 min-w-0 bg-slate-900/30 rounded-xl border border-slate-800 p-4">
                  {chartData.length > 0 ? renderChart(12, true, true) : (
                    <div className="h-full flex items-center justify-center text-slate-500">No data available</div>
                  )}

@@ -213,11 +213,11 @@ export default function TestpointDialog({ testpoint, onClose }: TestpointDialogP
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                className="w-full h-full"
+                className="h-full w-full min-w-0"
               >
-                <div className="flex flex-col h-[320px] w-full bg-slate-800/30 rounded-xl border border-slate-600/40 shadow-inner p-3 relative overflow-hidden">
+                <div className="relative flex h-[320px] min-h-[320px] w-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-600/40 bg-slate-800/30 p-3 shadow-inner">
                   {chartData.length > 0 && activeTabConfig ? (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
                       <LineChart data={chartData} margin={{ top: 10, right: 16, left: -16, bottom: 6 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis dataKey="label" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} minTickGap={24} />

@@ -119,3 +119,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET() {
+  return NextResponse.json({
+    available: Boolean(process.env.POE_API_KEY),
+  });
+}

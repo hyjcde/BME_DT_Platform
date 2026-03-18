@@ -142,9 +142,7 @@ function CampusModel({ onBoundsReady }: { onBoundsReady: (b: ModelBounds) => voi
   return <primitive ref={groupRef} object={scene} />;
 }
 
-useGLTF.preload(MODEL_PATH, DRACO_CDN);
-
-function ModelLoader() {
+function ModelLoader({ label = 'Loading CUHK Campus' }: { label?: string }) {
   const { progress } = useProgress();
   return (
     <Html center>
@@ -157,7 +155,7 @@ function ModelLoader() {
         minWidth: 260,
       }}>
         <div style={{ color: '#06b6d4', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-          Loading CUHK Campus
+          {label}
         </div>
         <div style={{
           width: '100%', height: 6, background: '#1e293b', borderRadius: 3, overflow: 'hidden', marginBottom: 6,
@@ -172,6 +170,42 @@ function ModelLoader() {
         </div>
       </div>
     </Html>
+  );
+}
+
+function CampusFallback({ onBoundsReady }: { onBoundsReady: (b: ModelBounds) => void }) {
+  useEffect(() => {
+    onBoundsReady(DEFAULT_BOUNDS);
+  }, [onBoundsReady]);
+
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]}>
+        <planeGeometry args={[DEFAULT_BOUNDS.sizeX * 1.6, DEFAULT_BOUNDS.sizeZ * 1.6]} />
+        <meshStandardMaterial color="#0f172a" transparent opacity={0.7} />
+      </mesh>
+      <gridHelper
+        args={[DEFAULT_BOUNDS.sizeX * 1.6, 24, '#22d3ee', '#334155']}
+        position={[0, 0.03, 0]}
+      />
+      <Html center position={[0, DEFAULT_BOUNDS.maxY + 2, 0]}>
+        <div style={{
+          background: 'rgba(2, 6, 23, 0.92)',
+          border: '1px solid rgba(34, 211, 238, 0.35)',
+          borderRadius: 12,
+          padding: '14px 18px',
+          textAlign: 'center',
+          minWidth: 280,
+        }}>
+          <div style={{ color: '#f8fafc', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+            Campus model unavailable
+          </div>
+          <div style={{ color: '#94a3b8', fontSize: 11, lineHeight: 1.5 }}>
+            `cuhk-campus.glb` was not deployed, so 3D mode is using a lightweight fallback scene.
+          </div>
+        </div>
+      </Html>
+    </group>
   );
 }
 
@@ -577,6 +611,27 @@ export default function ThreeMap({
   timeOfDay = 12,
 }: ThreeMapProps) {
   const [modelBounds, setModelBounds] = useState<ModelBounds>(DEFAULT_BOUNDS);
+  const [modelStatus, setModelStatus] = useState<'checking' | 'ready' | 'missing'>('checking');
+
+  useEffect(() => {
+    let active = true;
+
+    fetch(MODEL_PATH, { method: 'HEAD' })
+      .then((response) => {
+        if (active) {
+          setModelStatus(response.ok ? 'ready' : 'missing');
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setModelStatus('missing');
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleBoundsReady = useCallback((b: ModelBounds) => {
     setModelBounds(b);
@@ -601,9 +656,15 @@ export default function ThreeMap({
       >
         <DynamicLighting hour={timeOfDay} />
 
-        <Suspense fallback={<ModelLoader />}>
-          <CampusModel onBoundsReady={handleBoundsReady} />
-        </Suspense>
+        {modelStatus === 'ready' ? (
+          <Suspense fallback={<ModelLoader />}>
+            <CampusModel onBoundsReady={handleBoundsReady} />
+          </Suspense>
+        ) : modelStatus === 'checking' ? (
+          <ModelLoader label="Checking campus model" />
+        ) : (
+          <CampusFallback onBoundsReady={handleBoundsReady} />
+        )}
 
         {showFlightPaths && <FlightPaths paths={flightPaths} bounds={modelBounds} />}
         {showFlightPaths && recordedFlightPaths.length > 0 && (
